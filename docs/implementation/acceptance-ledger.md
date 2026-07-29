@@ -15,7 +15,7 @@ It is updated by the PR that introduces each capability.
 | Selective reuse after revision | 2, 7 | Direct and transitive invalidation unit tests; runtime integration pending | In progress |
 | Claim-level evidence and conflicts | 5 | Strict provenance/conflict contracts implemented; behavior tests pending | In progress |
 | Exact editable approval | 8, 9 | Proposal/permit/action contracts implemented; broker tests pending | In progress |
-| Durable close/reopen and SSE replay | 4, 7, 9 | Replay and browser journey tests | Planned |
+| Durable close/reopen and SSE replay | 4, 7, 9 | PostgreSQL journal, projections, outbox, Last-Event-ID replay, and application-lifespan tests implemented; workflow/UI journeys pending | In progress |
 | Failure recovery | 7, 12 | Worker/browser termination test evidence | Planned |
 | Downloadable artifacts | 3, 6, 9 | Requirements artifact download implemented; richer deliverables pending | In progress |
 | Controlled real email | Final credential gate | Provider receipt and audit record | Blocked by credentials |

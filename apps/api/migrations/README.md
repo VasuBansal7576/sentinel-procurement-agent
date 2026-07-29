@@ -32,7 +32,8 @@ specialized projection. Callers should pass domain models using
 
 ## Application wiring
 
-Compose `event_store_runtime()` into the FastAPI lifespan, set the yielded store
-on `app.state.event_store`, and include `sentinel_api.routes.events.router`
-under `/api`. This remains an explicit integration step so the walking-skeleton
-application can own its combined lifespan and route layout.
+The FastAPI lifespan composes `event_store_runtime()`, exposes the yielded store
+on `app.state.event_store`, and mounts resumable event delivery under `/api`.
+Local development may set `SENTINEL_PERSISTENCE_MODE=postgres` and
+`SENTINEL_AUTO_MIGRATE=true`. Production deployments should normally apply
+migrations as a release step and leave automatic migration disabled.

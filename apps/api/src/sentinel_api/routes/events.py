@@ -1,27 +1,24 @@
 """HTTP adapter for resumable run event streams."""
 
+from collections.abc import Iterator
 from typing import Annotated, cast
 from uuid import UUID
 
 from fastapi import APIRouter, Header, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 
+from sentinel_api.application.walking_skeleton import InMemoryRunStore
 from sentinel_api.persistence.protocols import EventStore
 from sentinel_api.realtime import ResumableEventStream, parse_last_event_id
 
 router = APIRouter(tags=["runs"])
 
 
-def event_store_from_app(request: Request) -> EventStore:
+def event_store_from_app(request: Request) -> EventStore | None:
     """Resolve the store installed by the application's persistence lifespan."""
 
     store = getattr(request.app.state, "event_store", None)
-    if store is None:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="event store is not configured",
-        )
-    return cast(EventStore, store)
+    return cast(EventStore, store) if store is not None else None
 
 
 @router.get("/runs/{run_id}/events", response_class=StreamingResponse)
@@ -41,6 +38,34 @@ async def stream_run_events(
         ) from error
 
     store = event_store_from_app(request)
+    if store is None:
+        memory_store = getattr(request.app.state, "run_store", None)
+        if not isinstance(memory_store, InMemoryRunStore):
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="event store is not configured",
+            )
+        events = memory_store.events_after(run_id, cursor)
+        if events is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="run not found")
+
+        def finite_stream() -> Iterator[str]:
+            for event in events:
+                yield (
+                    f"id: {event.sequence}\n"
+                    f"event: {event.event_type}\n"
+                    f"data: {event.model_dump_json()}\n\n"
+                )
+
+        return StreamingResponse(
+            finite_stream(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache, no-transform",
+                "X-Accel-Buffering": "no",
+            },
+        )
+
     if await store.get_run(run_id) is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="run not found")
 
