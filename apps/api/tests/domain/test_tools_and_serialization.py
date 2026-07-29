@@ -38,6 +38,8 @@ def test_approval_permit_round_trips_as_json() -> None:
         canonical_payload_sha256="a" * 64,
         attachment_sha256=("b" * 64,),
         policy_decision_id=uuid4(),
+        organization_policy_id=uuid4(),
+        organization_revision=1,
         risk_class=RiskClass.EXTERNAL_SEND,
         approver_id=uuid4(),
         approved_at=now,
