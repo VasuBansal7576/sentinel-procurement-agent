@@ -92,7 +92,18 @@ class EmailExecutionService:
             )
             raise
 
-        result = await self._provider.dispatch(request)
+        try:
+            result = await self._provider.dispatch(request)
+        except Exception:
+            return await self._store.transition(
+                request.action_intent_id,
+                expected=ActionOutcomeState.DISPATCHING,
+                next_state=ActionOutcomeState.OUTCOME_UNKNOWN,
+                at=self._clock(),
+                detail=(
+                    "Email provider failed after dispatch began; outcome requires reconciliation"
+                ),
+            )
         return await self._record_dispatch_result(request, result)
 
     async def reconcile(

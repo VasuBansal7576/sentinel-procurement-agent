@@ -19,6 +19,6 @@ It is updated by the PR that introduces each capability.
 | Failure recovery | 7, 12 | Temporal worker restart, cooperative child cancellation, activity retry, and parent/child history replay implemented; browser termination integration pending | In progress |
 | Downloadable artifacts | 3, 6, 9 | Deterministic requirements Markdown, comparison XLSX, recommendation Markdown, and RFQ ZIP generators implemented with stable hashes and spreadsheet-injection protection; artifact rail implemented, real projection wiring pending | In progress |
 | Deterministic candidate evaluation | 6 | Unit/currency normalization, conflict-aware evidence resolution, mandatory gates, weighted scoring, ranking, and 120-test real-PostgreSQL acceptance suite | Implemented |
-| Controlled real email | Final credential gate | Provider receipt and audit record | Blocked by credentials |
+| Controlled real email | 10, final credential gate | Credential-isolated provider boundary, Resend adapter, controlled-recipient recheck, PostgreSQL CAS outcomes, concurrent duplicate suppression, reconciliation, and sanitized audit tests implemented; one real provider receipt remains blocked by credentials and explicit approval | In progress |
 | Multiple procurement categories | 11 | Genericity suite | Planned |
 | Operator-perspective demonstration | 12 | Demo checklist and recorded trace | Planned |

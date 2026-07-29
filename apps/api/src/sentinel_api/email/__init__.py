@@ -14,6 +14,7 @@ from sentinel_api.email.models import (
     normalize_email_address,
     validate_provider_message_id,
 )
+from sentinel_api.email.postgres import PostgresEmailExecutionStore
 from sentinel_api.email.providers import (
     DeterministicFakeEmailProvider,
     EmailProvider,
@@ -52,6 +53,7 @@ __all__ = [
     "ExecutionStateConflict",
     "FakeProviderBehavior",
     "InMemoryEmailExecutionStore",
+    "PostgresEmailExecutionStore",
     "ProviderAuditEvent",
     "ProviderDispatchResult",
     "ProviderReceipt",

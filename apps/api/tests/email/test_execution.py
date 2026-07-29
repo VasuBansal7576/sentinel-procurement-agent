@@ -22,6 +22,11 @@ from sentinel_api.email import (
     FakeProviderBehavior,
     InMemoryEmailExecutionStore,
 )
+from sentinel_api.email.models import (
+    EmailDispatchRequest,
+    ProviderDispatchResult,
+    ProviderReconciliationResult,
+)
 from sentinel_api.protected_actions.broker import AuthorizedAction
 from sentinel_api.protected_actions.canonical import canonical_json
 from sentinel_api.research import ResearchCapability, ResearchGrant
@@ -68,6 +73,23 @@ def _service(
     )
 
 
+class CrashingProvider:
+    async def dispatch(
+        self,
+        request: EmailDispatchRequest,
+    ) -> ProviderDispatchResult:
+        del request
+        raise RuntimeError("provider secret must not enter the audit trail")
+
+    async def reconcile(
+        self,
+        request: EmailDispatchRequest,
+        provider_reference: str | None,
+    ) -> ProviderReconciliationResult:
+        del request, provider_reference
+        raise AssertionError("reconciliation is not part of this test")
+
+
 @pytest.mark.asyncio
 async def test_confirmed_send_maps_receipt_and_audit_without_message_content() -> None:
     provider = DeterministicFakeEmailProvider()
@@ -92,6 +114,24 @@ async def test_confirmed_send_maps_receipt_and_audit_without_message_content() -
     serialized_audit = repr(record.audit_events)
     assert "Sensitive approved content" not in serialized_audit
     assert authorized.intent.idempotency_key not in serialized_audit
+
+
+@pytest.mark.asyncio
+async def test_unexpected_provider_failure_becomes_sanitized_unknown_outcome() -> None:
+    service = EmailExecutionService(
+        provider=CrashingProvider(),
+        store=InMemoryEmailExecutionStore(),
+        sender="sentinel@example.test",
+        clock=lambda: NOW,
+    )
+
+    record = await service.execute(
+        _authorized(),
+        controlled_recipient=CONTROLLED_RECIPIENT,
+    )
+
+    assert record.state is ActionOutcomeState.OUTCOME_UNKNOWN
+    assert "provider secret" not in repr(record.audit_events)
 
 
 @pytest.mark.asyncio

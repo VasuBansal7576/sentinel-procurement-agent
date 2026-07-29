@@ -14,6 +14,9 @@ Migration order:
 3. `0003_protected_actions.sql` stores immutable proposal versions, policy
    decisions, single-use approval permits, action intents, and external-effect
    outcomes.
+4. `0004_email_execution.sql` extends external-effect outcomes with payload-bound
+   email request fingerprints, attempt counts, sanitized receipts, and audit
+   transitions.
 
 ## Projection event payloads
 

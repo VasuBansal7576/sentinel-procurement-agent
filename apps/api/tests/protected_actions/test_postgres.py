@@ -41,7 +41,7 @@ async def durable_broker() -> AsyncIterator[tuple[PostgresEventStore, PostgresAp
 
     event_store = PostgresEventStore.from_url(database_url, max_size=10)
     await event_store.open()
-    assert await event_store.migrate() == ("0001", "0002", "0003")
+    assert await event_store.migrate() == ("0001", "0002", "0003", "0004")
     try:
         yield event_store, PostgresApprovalBroker(event_store.connection_pool)
     finally:

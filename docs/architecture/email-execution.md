@@ -64,23 +64,19 @@ controlled details. Message bodies, authorization material, transport error
 text, response bodies, and full idempotency keys are not stored in audit
 events.
 
-## Parent integration request
+## Integration status
 
-App wiring and persistence integration remain parent-owned:
+The parent composition now installs `PostgresEmailExecutionStore` on the
+application-owned connection pool. Its compare-and-set updates share the
+broker's `action_intents` and `action_outcomes` transaction boundary, while
+migration `0004_email_execution.sql` persists provider-request fingerprints,
+attempt counts, sanitized receipts, and audit events. Real-PostgreSQL tests
+prove concurrent duplicate suppression and recovery through a fresh store
+instance.
 
-1. Install the email execution service only in the protected action executor,
-   never in research/browser dependency graphs.
-2. Read the sender and controlled recipient from the parent-owned effective
-   configuration/policy at execution time.
-3. Provide an authenticated Resend transport from the secret-owning runtime;
-   do not pass credentials into this package.
-4. Implement `EmailExecutionStore` over the existing `action_intents` and
-   `action_outcomes` rows with an atomic PostgreSQL
-   `UPDATE ... WHERE action_intent_id = %s AND state = %s RETURNING ...`; zero
-   returned rows must become `ExecutionStateConflict`.
-5. Persist the provider-request fingerprint and sanitized receipt/audit
-   envelope in parent-owned storage. If structured columns are desired, add
-   them in a parent-owned migration.
-6. Keep the final controlled external send behind an explicit user/parent gate.
-   Unit and integration tests use only injected fakes and must never perform a
-   real send.
+Final workflow integration must install `EmailExecutionService` only in the
+protected executor, read the current controlled recipient at execution time,
+and provide an authenticated transport from the secret-owning runtime. The
+transport must not enter research/browser dependency graphs. The final
+controlled external send remains behind an explicit user gate; all earlier
+tests use injected fakes and perform no network send.
