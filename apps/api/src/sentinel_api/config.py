@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = Field(default=8000, ge=1, le=65535)
     web_origin: AnyHttpUrl = AnyHttpUrl("http://localhost:5173")
+    persistence_mode: Literal["memory", "postgres"] = "memory"
+    auto_migrate: bool = False
     database_url: str = "postgresql+psycopg://sentinel:sentinel@localhost:5432/sentinel"
     temporal_address: str = "localhost:7233"
     temporal_namespace: str = "default"
