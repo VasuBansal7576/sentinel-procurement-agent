@@ -19,6 +19,7 @@ from sentinel_api.workflows.models import (
     QueueMessageCommand,
     RedirectCommand,
     ResumeCommand,
+    RetryWorkCommand,
 )
 from sentinel_api.workflows.parent import ProcurementParentWorkflow
 from sentinel_api.workflows.runtime import parent_workflow_id, start_procurement_run
@@ -38,6 +39,8 @@ class RuntimeLauncher(Protocol):
     ) -> object: ...
 
     async def redirect(self, run_id: UUID, command: RedirectCommand) -> object: ...
+
+    async def retry(self, run_id: UUID, command: RetryWorkCommand) -> object: ...
 
 
 class InlineRuntimeLauncher:
@@ -266,6 +269,10 @@ class InlineRuntimeLauncher:
             "detail": "redirect applied",
         }
 
+    async def retry(self, run_id: UUID, command: RetryWorkCommand) -> object:
+        del run_id, command
+        raise ValueError("recoverable retry requires the durable Temporal runtime")
+
 
 class TemporalRuntimeLauncher:
     """Thin client adapter; workflow code and sandbox remain centrally owned."""
@@ -305,6 +312,12 @@ class TemporalRuntimeLauncher:
     async def redirect(self, run_id: UUID, command: RedirectCommand) -> object:
         return await self._handle(run_id).execute_update(
             ProcurementParentWorkflow.redirect,
+            command,
+        )
+
+    async def retry(self, run_id: UUID, command: RetryWorkCommand) -> object:
+        return await self._handle(run_id).execute_update(
+            ProcurementParentWorkflow.retry_work,
             command,
         )
 
@@ -358,3 +371,6 @@ class LazyTemporalRuntimeLauncher:
 
     async def redirect(self, run_id: UUID, command: RedirectCommand) -> object:
         return await (await self._runtime()).redirect(run_id, command)
+
+    async def retry(self, run_id: UUID, command: RetryWorkCommand) -> object:
+        return await (await self._runtime()).retry(run_id, command)

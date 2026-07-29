@@ -25,9 +25,9 @@ events. Every event has a deterministic attempt/revision idempotency key.
 
 Migration `0005_integration_records.sql` is strictly additive. It stores compact
 JSON records and optional artifact bytes under the composite key
-`(run_id, record_ref)`. Artifact IDs are opaque UUIDs and cannot be downloaded
-outside their owning run. Journal payloads contain references, hashes, counts,
-and summaries; they never contain artifact bytes.
+`(run_id, record_ref)`. Artifact IDs are random opaque UUIDs and cannot be
+downloaded outside their owning run. Journal payloads contain references,
+hashes, counts, and summaries; they never contain artifact bytes.
 
 Proposal versions and exact approval permits continue to use the protected
 action tables introduced in PR 8. Editing always creates a new canonical
@@ -53,31 +53,18 @@ reconciliation state machine.
 - `GET /api/runs/{run_id}/artifacts/{artifact_id}`
 
 Safe retry is fail-closed. The projection marks only `transient` and
-`rate_limited` failures as intrinsically retryable, but the endpoint denies the
-command without changing state until the parent-owned durable
-blocked/recoverable state and targeted retry update are merged. That update
-must keep the parent open, preserve prior attempts and evidence, requeue only
-the targeted work item, and reject non-retryable and `outcome_unknown`
-failures. Redirect creates a real successor request revision and records
-retained and invalidated compact references.
+`rate_limited` failures as intrinsically retryable. Exhausted retryable work
+keeps the Temporal parent open in a durable blocked/recoverable state; an
+idempotent update binds the work ID to its exact failed attempt, preserves prior
+evidence, and requeues only that work. Non-retryable and `outcome_unknown`
+failures remain denied.
 
-### Parent retry binding seam
-
-After the parent-owned retry contract lands, integration should require only
-these adapter changes:
-
-1. Add `retry(run_id, RetryCommand)` to `RuntimeLauncher`.
-2. Implement it in `TemporalRuntimeLauncher` with
-   `ProcurementParentWorkflow.retry`; delegate through
-   `LazyTemporalRuntimeLauncher`. The inline launcher may apply the same
-   command handler for memory-mode tests.
-3. In `IntegrationService.retry_work`, keep the existing projection checks,
-   construct the targeted command from `command_id` and `work_id`, await the
-   runtime acknowledgement, and return the refreshed projection.
-4. Replace the current 409 seam test with acceptance tests proving one item is
-   requeued, sibling outputs and evidence refs are retained, the attempt number
-   increases, duplicate command IDs are idempotent, and non-retryable plus
-   `outcome_unknown` failures remain denied.
+Redirect is also idempotent at the application boundary. A prepared successor
+revision is persisted before the Temporal acknowledgement so a child can load
+it immediately, but it is promoted to the operator-visible revision only after
+the update is acknowledged. Repeated command IDs reuse the exact same revision,
+and redirected execution loads that exact revision rather than the original
+input record.
 
 ## Web gateway and acceptance
 

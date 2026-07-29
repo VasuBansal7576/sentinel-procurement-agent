@@ -9,6 +9,25 @@ import type {
 
 class ApiUnavailableError extends Error {}
 
+const projectionEventTypes = [
+  "run.status_changed",
+  "run.redirected",
+  "run.recovery_available",
+  "work.started",
+  "work.completed",
+  "work.failed",
+  "work.invalidated",
+  "work.retry_requested",
+  "subagent.started",
+  "subagent.completed",
+  "subagent.failed",
+  "tool.completed",
+  "operator.message_applied",
+  "proposal.edited",
+  "proposal.approved",
+  "proposal.rejected",
+] as const;
+
 function commandId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `command-${Date.now()}`;
 }
@@ -29,7 +48,7 @@ async function requestJson<T>(
     const body = (await response.json().catch(() => null)) as
       | { detail?: string }
       | null;
-    if ([404, 502, 503, 504].includes(response.status)) {
+    if ([502, 503, 504].includes(response.status)) {
       throw new ApiUnavailableError(
         body?.detail ?? "Sentinel API is unavailable.",
       );
@@ -66,9 +85,9 @@ export function createHttpGateway(): OperatorWorkbenchGateway {
         void gateway.getRun(runId).then(onProjection).catch(() => undefined);
       };
       source.onmessage = refresh;
-      source.addEventListener("run.status_changed", refresh);
-      source.addEventListener("work.completed", refresh);
-      source.addEventListener("proposal.edited", refresh);
+      for (const eventType of projectionEventTypes) {
+        source.addEventListener(eventType, refresh);
+      }
       return () => source.close();
     },
     createRun(input: CreateRunInput) {

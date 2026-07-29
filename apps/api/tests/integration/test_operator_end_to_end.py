@@ -10,6 +10,8 @@ from sentinel_api import create_app
 from sentinel_api.domain import ActionOutcomeState
 from sentinel_api.integration.protected import FakeProtectedEmailBoundary
 from sentinel_api.persistence.models import EventDraft
+from sentinel_api.persistence.protocols import EventStore
+from sentinel_api.workflows.models import RetryWorkCommand
 
 CATEGORIES = (
     {
@@ -34,6 +36,32 @@ CATEGORIES = (
         "unit": "instrument",
     },
 )
+
+
+class RecordingRetryRuntime:
+    def __init__(self, event_store: EventStore) -> None:
+        self.event_store = event_store
+        self.commands: list[RetryWorkCommand] = []
+
+    async def retry(self, run_id: UUID, command: RetryWorkCommand) -> object:
+        self.commands.append(command)
+        await self.event_store.append_event(
+            run_id,
+            EventDraft(
+                event_type="work.retry_requested",
+                status="recovering",
+                summary=command.reason,
+                payload={
+                    "status": "recovering",
+                    "failed_attempt": command.expected_attempt,
+                    "next_attempt": command.expected_attempt + 1,
+                },
+                work_item_id=UUID(command.work_item_id),
+                actor_id="operator",
+                idempotency_key=f"command:{command.command_id}:applied",
+            ),
+        )
+        return {"accepted": True}
 
 
 @pytest.mark.parametrize("intake", CATEGORIES)
@@ -115,13 +143,23 @@ def test_operator_commands_proposals_and_run_scoped_downloads() -> None:
         redirected = client.post(
             f"/api/operator/runs/{run_id}/redirect",
             json={
-                "command_id": str(uuid4()),
+                "command_id": (redirect_command_id := str(uuid4())),
                 "text": "Require mobilization within twenty days.",
                 "changed_dependencies": ["request:requirements"],
             },
         )
         assert redirected.status_code == 200
         assert redirected.json()["session"]["revision"] == 2
+        duplicate_redirect = client.post(
+            f"/api/operator/runs/{run_id}/redirect",
+            json={
+                "command_id": redirect_command_id,
+                "text": "Require mobilization within twenty days.",
+                "changed_dependencies": ["request:requirements"],
+            },
+        )
+        assert duplicate_redirect.status_code == 200
+        assert duplicate_redirect.json()["session"]["revision"] == 2
 
         proposal = redirected.json()["proposal"]
         edited = client.put(
@@ -179,12 +217,14 @@ def test_rejection_is_version_bound_and_never_dispatches() -> None:
         assert app.state.email_execution_store is not None
 
 
-def test_retryable_failure_stays_failed_until_parent_retry_update_is_bound() -> None:
+def test_retryable_failure_binds_the_exact_failed_attempt_to_runtime() -> None:
     app = create_app()
     with TestClient(app) as client:
         created = client.post("/api/operator/runs", json=CATEGORIES[0]).json()
         run_id = UUID(created["session"]["id"])
         work_id = UUID(created["workTree"][0]["children"][0]["children"][0]["id"])
+        runtime = RecordingRetryRuntime(app.state.integration_service.event_store)
+        app.state.integration_service.runtime = runtime
         asyncio.run(
             app.state.integration_service.event_store.append_event(
                 run_id,
@@ -194,6 +234,7 @@ def test_retryable_failure_stays_failed_until_parent_retry_update_is_bound() -> 
                     summary="Transient tool retries exhausted",
                     payload={
                         "status": "failed",
+                        "attempt": 3,
                         "blocker": "transient",
                         "completed_units": 0,
                         "total_units": 1,
@@ -209,12 +250,12 @@ def test_retryable_failure_stays_failed_until_parent_retry_update_is_bound() -> 
             json={"command_id": str(uuid4())},
         )
 
-        assert retry.status_code == 409
-        assert "parent-owned targeted retry update" in retry.json()["detail"]
-        projection = client.get(f"/api/operator/runs/{run_id}").json()
-        work = projection["workTree"][0]["children"][0]["children"][0]
-        assert work["status"] == "failed"
-        assert work["retry"]["safeToRetry"] is True
+        assert retry.status_code == 200
+        assert len(runtime.commands) == 1
+        assert runtime.commands[0].work_item_id == str(work_id)
+        assert runtime.commands[0].expected_attempt == 3
+        work = retry.json()["workTree"][0]["children"][0]["children"][0]
+        assert work["status"] == "recovering"
 
 
 def test_exact_approval_can_cross_only_the_fake_controlled_email_boundary() -> None:

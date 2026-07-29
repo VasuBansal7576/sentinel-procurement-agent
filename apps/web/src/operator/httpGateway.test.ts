@@ -99,4 +99,15 @@ describe("HTTP operator gateway", () => {
     await expect(gateway.getRun("missing")).rejects.toThrow("Run not found");
     expect(gateway.isFixture).toBe(false);
   });
+
+  it("does not treat a missing API resource as infrastructure unavailability", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(jsonResponse({ detail: "Run not found" }, 404)),
+    );
+    const gateway = createApiFirstGateway();
+
+    await expect(gateway.getRun("missing")).rejects.toThrow("Run not found");
+    expect(gateway.isFixture).toBe(false);
+  });
 });

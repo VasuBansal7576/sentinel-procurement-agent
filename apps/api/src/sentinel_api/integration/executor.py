@@ -6,7 +6,7 @@ from collections.abc import Callable
 from decimal import Decimal
 from functools import partial
 from typing import Any, cast
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from sentinel_api.artifacts import generate_artifact_set
 from sentinel_api.domain import (
@@ -60,7 +60,7 @@ class CredentialFreeWorkExecutor:
         loaded = await self._step(
             request,
             "request.load",
-            lambda: self._records.get(run_id, input_ref),
+            lambda: self._request_record(run_id, input_ref, request),
         )
         if not isinstance(loaded, IntegrationRecord):
             raise KeyError("typed request input record does not exist")
@@ -229,7 +229,7 @@ class CredentialFreeWorkExecutor:
         )
         artifact_records: list[IntegrationRecord] = []
         for position, artifact in enumerate(generated, start=1):
-            artifact_id = deterministic_id(run_id, f"artifact:{position}:{artifact.sha256}")
+            artifact_id = uuid4()
             artifact_record = IntegrationRecord(
                 run_id=run_id,
                 record_ref=artifact_id,
@@ -410,6 +410,25 @@ class CredentialFreeWorkExecutor:
             ),
         )
         return result
+
+    async def _request_record(
+        self,
+        run_id: UUID,
+        input_ref: UUID,
+        request: ChildActivityInput,
+    ) -> IntegrationRecord | None:
+        if request.request_revision_number == 1:
+            return await self._records.get(run_id, input_ref)
+        for record in reversed(await self._records.list(run_id)):
+            if record.record_kind not in {
+                "request_revision",
+                "request_revision_prepared",
+            }:
+                continue
+            revision = record.payload.get("revision")
+            if isinstance(revision, dict) and revision.get("id") == request.request_revision_id:
+                return record
+        return None
 
 
 def _json_scalar(value: object) -> object:

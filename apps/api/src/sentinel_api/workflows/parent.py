@@ -739,6 +739,7 @@ class ProcurementParentWorkflow:
                 summary=result.summary,
                 payload={
                     "status": event_status,
+                    "attempt": result.attempt,
                     "completed_units": 1 if event_status == "completed" else 0,
                     "total_units": 1,
                     "blocker": blocker,

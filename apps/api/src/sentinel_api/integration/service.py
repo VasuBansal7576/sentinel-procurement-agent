@@ -37,6 +37,7 @@ from sentinel_api.workflows.models import (
     QueueMessageCommand,
     RedirectCommand,
     ResumeCommand,
+    RetryWorkCommand,
 )
 
 
@@ -159,37 +160,80 @@ class IntegrationService:
         run_id: UUID,
         body: RedirectCommandRequest,
     ) -> dict[str, object]:
-        request_records = await self.records.list(run_id)
-        current = max(
-            (
-                record
-                for record in request_records
-                if record.record_kind in {"request", "request_revision"}
-            ),
-            key=lambda record: record.version,
-        )
-        revision = RequestRevision.model_validate(current.payload["revision"])
-        next_number = revision.revision_number + 1
-        next_id = deterministic_id(run_id, f"request-revision:{next_number}")
-        next_revision = revision.model_copy(
-            update={
-                "id": next_id,
-                "revision_number": next_number,
-                "previous_revision_id": revision.id,
-                "reason": body.text,
-            }
-        )
-        next_record = IntegrationRecord(
-            run_id=run_id,
-            record_ref=next_id,
-            record_kind="request_revision",
-            payload={
-                **current.payload,
-                "revision": next_revision.model_dump(mode="json"),
-            },
-            version=next_number,
-        )
-        await self.records.put(next_record)
+        command_ref = deterministic_id(run_id, f"redirect-command:{body.command_id}")
+        existing_command = await self.records.get(run_id, command_ref)
+        if existing_command is not None:
+            stored_dependencies = existing_command.payload.get(
+                "changed_dependencies",
+                (),
+            )
+            if not isinstance(stored_dependencies, (list, tuple)):
+                raise ValueError("stored redirect dependencies are invalid")
+            if (
+                existing_command.payload.get("text") != body.text
+                or tuple(str(item) for item in stored_dependencies) != body.changed_dependencies
+            ):
+                raise ValueError("command_id cannot be reused with a different redirect")
+            next_id = UUID(str(existing_command.payload["request_revision_id"]))
+            next_number = int(str(existing_command.payload["request_revision_number"]))
+            next_revision = RequestRevision.model_validate(existing_command.payload["revision"])
+            base_payload = existing_command.payload["request_payload"]
+            if not isinstance(base_payload, dict):
+                raise ValueError("stored redirect request payload is invalid")
+        else:
+            request_records = await self.records.list(run_id)
+            current = max(
+                (
+                    record
+                    for record in request_records
+                    if record.record_kind in {"request", "request_revision"}
+                ),
+                key=lambda record: record.version,
+            )
+            revision = RequestRevision.model_validate(current.payload["revision"])
+            next_number = revision.revision_number + 1
+            next_id = deterministic_id(run_id, f"request-revision:{next_number}")
+            next_revision = revision.model_copy(
+                update={
+                    "id": next_id,
+                    "revision_number": next_number,
+                    "previous_revision_id": revision.id,
+                    "reason": body.text,
+                }
+            )
+            base_payload = current.payload
+            await self.records.put(
+                IntegrationRecord(
+                    run_id=run_id,
+                    record_ref=command_ref,
+                    record_kind="redirect_command",
+                    payload={
+                        "command_id": str(body.command_id),
+                        "text": body.text,
+                        "changed_dependencies": list(body.changed_dependencies),
+                        "request_revision_id": str(next_id),
+                        "request_revision_number": next_number,
+                        "revision": next_revision.model_dump(mode="json"),
+                        "request_payload": base_payload,
+                    },
+                    version=next_number,
+                )
+            )
+            await self.records.put(
+                IntegrationRecord(
+                    run_id=run_id,
+                    record_ref=deterministic_id(
+                        run_id,
+                        f"request-revision-prepared:{next_id}",
+                    ),
+                    record_kind="request_revision_prepared",
+                    payload={
+                        **base_payload,
+                        "revision": next_revision.model_dump(mode="json"),
+                    },
+                    version=next_number,
+                )
+            )
         await self.runtime.redirect(
             run_id,
             RedirectCommand(
@@ -200,6 +244,19 @@ class IntegrationService:
                 reason=body.text,
             ),
         )
+        await self.records.put(
+            IntegrationRecord(
+                run_id=run_id,
+                record_ref=next_id,
+                record_kind="request_revision",
+                payload={
+                    **base_payload,
+                    "revision": next_revision.model_dump(mode="json"),
+                },
+                version=next_number,
+            )
+        )
+        request_records = await self.records.list(run_id)
         retained = [
             str(record.record_ref)
             for record in request_records
@@ -246,10 +303,26 @@ class IntegrationService:
             raise KeyError("work item not found")
         if item.status != "failed" or item.blocker not in {"transient", "rate_limited"}:
             raise ValueError("work item is not in an explicitly safe-to-retry state")
-        raise ValueError(
-            "retryable work awaits the parent-owned targeted retry update; "
-            "no recovery was scheduled"
+        failed_events = [
+            event
+            for event in await self.event_store.list_events(run_id, limit=500)
+            if event.work_item_id == work_id and event.event_type == "work.failed"
+        ]
+        if not failed_events:
+            raise ValueError("failed work has no durable attempt record")
+        failed_attempt = failed_events[-1].payload.get("attempt")
+        if failed_attempt is None:
+            raise ValueError("failed work has no durable attempt number")
+        await self.runtime.retry(
+            run_id,
+            RetryWorkCommand(
+                command_id=str(command_id),
+                work_item_id=str(work_id),
+                expected_attempt=int(str(failed_attempt)),
+                reason="Operator retried from the failed checkpoint",
+            ),
         )
+        return await self.get_run(run_id)
 
     async def edit_proposal(
         self,
