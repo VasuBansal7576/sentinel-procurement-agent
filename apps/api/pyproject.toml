@@ -24,6 +24,7 @@ dev = [
 
 [project.scripts]
 sentinel-api = "sentinel_api.__main__:main"
+sentinel-worker = "sentinel_api.workflows.worker:main"
 
 [build-system]
 requires = ["hatchling"]

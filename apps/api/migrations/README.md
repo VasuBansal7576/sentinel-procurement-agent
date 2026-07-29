@@ -17,6 +17,9 @@ Migration order:
 4. `0004_email_execution.sql` extends external-effect outcomes with payload-bound
    email request fingerprints, attempt counts, sanitized receipts, and audit
    transitions.
+5. `0005_integration_records.sql` stores compact run-scoped typed records and
+   optional artifact bytes behind opaque references; journal payloads retain
+   only IDs, hashes, counts, and other bounded projection material.
 
 ## Projection event payloads
 

@@ -61,6 +61,22 @@ async def get_run(run_id: UUID, request: Request) -> RunView:
 
 @router.get("/{run_id}/artifacts/{artifact_id}")
 async def download_artifact(run_id: UUID, artifact_id: UUID, request: Request) -> Response:
+    integration_service = getattr(request.app.state, "integration_service", None)
+    if integration_service is not None:
+        try:
+            artifact = await integration_service.artifact(run_id, artifact_id)
+        except KeyError:
+            pass
+        else:
+            return Response(
+                content=artifact.content,
+                media_type=artifact.media_type,
+                headers={
+                    "Content-Disposition": (f'attachment; filename="{artifact.filename}"'),
+                    "X-Content-Type-Options": "nosniff",
+                    "X-Content-SHA256": artifact.content_sha256,
+                },
+            )
     artifact = _run_store(request).artifact(run_id, artifact_id)
     if artifact is None:
         raise HTTPException(status_code=404, detail="Artifact not found")

@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse
 
 from sentinel_api.application.walking_skeleton import InMemoryRunStore
 from sentinel_api.persistence.protocols import EventStore
-from sentinel_api.realtime import ResumableEventStream, parse_last_event_id
+from sentinel_api.realtime import ResumableEventStream, encode_event, parse_last_event_id
 
 router = APIRouter(tags=["runs"])
 
@@ -48,9 +48,10 @@ async def stream_run_events(
         events = memory_store.events_after(run_id, cursor)
         if events is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="run not found")
+        replay_events = events
 
         def finite_stream() -> Iterator[str]:
-            for event in events:
+            for event in replay_events:
                 yield (
                     f"id: {event.sequence}\n"
                     f"event: {event.event_type}\n"
@@ -67,7 +68,45 @@ async def stream_run_events(
         )
 
     if await store.get_run(run_id) is None:
+        memory_store = getattr(request.app.state, "run_store", None)
+        if isinstance(memory_store, InMemoryRunStore):
+            events = memory_store.events_after(run_id, cursor)
+            if events is not None:
+                replay_events = events
+
+                def finite_stream() -> Iterator[str]:
+                    for event in replay_events:
+                        yield (
+                            f"id: {event.sequence}\n"
+                            f"event: {event.event_type}\n"
+                            f"data: {event.model_dump_json()}\n\n"
+                        )
+
+                return StreamingResponse(
+                    finite_stream(),
+                    media_type="text/event-stream",
+                    headers={
+                        "Cache-Control": "no-cache, no-transform",
+                        "X-Accel-Buffering": "no",
+                    },
+                )
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="run not found")
+
+    if getattr(store, "finite_streams", False):
+        durable_events = await store.list_events(run_id, after_sequence=cursor)
+
+        def finite_durable_stream() -> Iterator[bytes]:
+            for event in durable_events:
+                yield encode_event(event)
+
+        return StreamingResponse(
+            finite_durable_stream(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache, no-transform",
+                "X-Accel-Buffering": "no",
+            },
+        )
 
     stream = ResumableEventStream(store)
     return StreamingResponse(

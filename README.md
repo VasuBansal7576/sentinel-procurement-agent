@@ -90,6 +90,7 @@ Run the API and workbench in separate terminals:
 
 ```bash
 .venv/bin/sentinel-api
+.venv/bin/sentinel-worker
 npm run dev:web
 ```
 
