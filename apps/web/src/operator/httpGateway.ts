@@ -68,7 +68,7 @@ function jsonRequest(method: string, body: object): RequestInit {
 
 export function createHttpGateway(): OperatorWorkbenchGateway {
   const gateway: OperatorWorkbenchGateway = {
-    sourceLabel: "Durable API projection · PostgreSQL/Temporal ready",
+    sourceLabel: "Durable API projection · fake providers · no approval dispatch",
     isFixture: false,
     listSessions() {
       return requestJson<SessionSummary[]>("/api/operator/sessions");
@@ -121,7 +121,7 @@ export function createHttpGateway(): OperatorWorkbenchGateway {
           jsonRequest("POST", {
             command_id: commandId(),
             text,
-            changed_dependencies: ["request:scope"],
+            changed_dependencies: ["request:requirements"],
           }),
         );
       }

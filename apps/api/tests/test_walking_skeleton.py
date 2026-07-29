@@ -40,6 +40,9 @@ def test_run_crosses_api_events_and_artifact_boundaries() -> None:
     download = client.get(artifact["download_url"])
     assert download.status_code == 200
     assert "attachment; filename=" in download.headers["content-disposition"]
+    assert download.headers["cache-control"] == "private, no-store"
+    assert download.headers["content-security-policy"] == "default-src 'none'; sandbox"
+    assert len(download.headers["x-content-sha256"]) == 64
     assert "Industrial label printer" in download.text
 
 

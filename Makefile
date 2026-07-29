@@ -1,11 +1,11 @@
-.PHONY: bootstrap check test lint format typecheck dev infra-up infra-down
+.PHONY: bootstrap check test lint format typecheck dev infra-up infra-down trace-verify
 
 UV_CACHE_DIR ?= .sentinel/uv-cache
 VENV_BIN ?= .venv/bin
 
 bootstrap:
-	UV_CACHE_DIR=$(UV_CACHE_DIR) uv sync --all-packages --all-extras
-	npm install
+	UV_CACHE_DIR=$(UV_CACHE_DIR) uv sync --all-packages --all-extras --locked
+	npm ci
 
 check: lint typecheck test
 
@@ -14,13 +14,13 @@ test:
 	npm run test
 
 lint:
-	$(VENV_BIN)/ruff check apps/api
-	$(VENV_BIN)/ruff format --check apps/api
+	$(VENV_BIN)/ruff check apps/api scripts
+	$(VENV_BIN)/ruff format --check apps/api scripts
 	npm run lint
 
 format:
-	$(VENV_BIN)/ruff check --fix apps/api
-	$(VENV_BIN)/ruff format apps/api
+	$(VENV_BIN)/ruff check --fix apps/api scripts
+	$(VENV_BIN)/ruff format apps/api scripts
 	npm run format
 
 typecheck:
@@ -29,10 +29,13 @@ typecheck:
 
 dev:
 	docker compose up -d postgres temporal minio minio-init
-	@echo "Run 'npm run dev:web' and 'uv run --package sentinel-api sentinel-api' in separate terminals."
+	@echo "Run sentinel-api, sentinel-worker, and npm run dev:web in three terminals."
 
 infra-up:
 	docker compose up -d
 
 infra-down:
 	docker compose down
+
+trace-verify:
+	./scripts/export_codex_trace.py verify

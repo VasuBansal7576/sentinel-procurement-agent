@@ -129,6 +129,7 @@ export interface OperatorCommand {
 export interface OperatorRun {
   session: SessionSummary;
   summary: string;
+  runtimeDisclosure: string;
   activePhase: string;
   policyLabel: string;
   elapsedLabel: string;

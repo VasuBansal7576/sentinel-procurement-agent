@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, KeyboardEvent, useRef, useState } from "react";
 
 import type { OperatorRun, ProposalEdit } from "./types";
 
@@ -24,6 +24,7 @@ export function ActionRail({
     body: run.proposal?.current.body ?? "",
   }));
   const proposal = run.proposal;
+  const proposalTabs = useRef<Array<HTMLButtonElement | null>>([]);
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -31,6 +32,32 @@ export function ActionRail({
     await onSaveProposal(edit);
     setIsSaving(false);
     setIsEditing(false);
+  }
+
+  function handleProposalTabKeyDown(
+    event: KeyboardEvent<HTMLButtonElement>,
+    index: number,
+  ) {
+    const availableTabs = proposalTabs.current.filter(
+      (tab): tab is HTMLButtonElement => Boolean(tab && !tab.disabled),
+    );
+    const current = availableTabs.indexOf(proposalTabs.current[index]!);
+    let next = current;
+    if (event.key === "ArrowRight") {
+      next = (current + 1) % availableTabs.length;
+    } else if (event.key === "ArrowLeft") {
+      next = (current - 1 + availableTabs.length) % availableTabs.length;
+    } else if (event.key === "Home") {
+      next = 0;
+    } else if (event.key === "End") {
+      next = availableTabs.length - 1;
+    } else {
+      return;
+    }
+    event.preventDefault();
+    const target = availableTabs[next];
+    setProposalView(target.dataset.view === "diff" ? "diff" : "preview");
+    target.focus();
   }
 
   return (
@@ -147,26 +174,47 @@ export function ActionRail({
                 aria-label="Proposal version views"
               >
                 <button
+                  ref={(node) => {
+                    proposalTabs.current[0] = node;
+                  }}
+                  id="proposal-preview-tab"
+                  data-view="preview"
                   type="button"
                   role="tab"
                   aria-selected={proposalView === "preview"}
+                  aria-controls="proposal-preview-panel"
+                  tabIndex={proposalView === "preview" ? 0 : -1}
                   onClick={() => setProposalView("preview")}
+                  onKeyDown={(event) => handleProposalTabKeyDown(event, 0)}
                 >
                   Exact preview
                 </button>
                 <button
+                  ref={(node) => {
+                    proposalTabs.current[1] = node;
+                  }}
+                  id="proposal-diff-tab"
+                  data-view="diff"
                   type="button"
                   role="tab"
                   aria-selected={proposalView === "diff"}
+                  aria-controls="proposal-diff-panel"
+                  tabIndex={proposalView === "diff" ? 0 : -1}
                   disabled={!proposal.previous}
                   onClick={() => setProposalView("diff")}
+                  onKeyDown={(event) => handleProposalTabKeyDown(event, 1)}
                 >
                   v{proposal.previous?.version ?? "–"} → v
                   {proposal.current.version}
                 </button>
               </div>
               {proposalView === "preview" ? (
-                <div className="proposal-preview" role="tabpanel">
+                <div
+                  className="proposal-preview"
+                  id="proposal-preview-panel"
+                  role="tabpanel"
+                  aria-labelledby="proposal-preview-tab"
+                >
                   <dl>
                     <div>
                       <dt>To</dt>
@@ -199,7 +247,12 @@ export function ActionRail({
                   <small>{proposal.current.digest}</small>
                 </div>
               ) : (
-                <div className="proposal-diff" role="tabpanel">
+                <div
+                  className="proposal-diff"
+                  id="proposal-diff-panel"
+                  role="tabpanel"
+                  aria-labelledby="proposal-diff-tab"
+                >
                   <p>
                     <del>
                       {proposal.previous?.subject ?? "No prior subject"}
@@ -239,7 +292,7 @@ export function ActionRail({
                       type="button"
                       onClick={() => void onDecideProposal("approve")}
                     >
-                      Approve exact v{proposal.current.version}
+                      Approve exact v{proposal.current.version} — no send
                     </button>
                     <button
                       className="danger-button"
@@ -250,11 +303,30 @@ export function ActionRail({
                     </button>
                   </div>
                 </>
+              ) : proposal.status === "approved" ? (
+                <>
+                  <p className="decision-receipt" role="status">
+                    Approved by {proposal.approvedBy}. No dispatch occurred;
+                    execution remains a separate fake-only gate.
+                  </p>
+                  <button
+                    className="edit-proposal"
+                    type="button"
+                    onClick={() => {
+                      setEdit({
+                        recipient: proposal.current.recipient,
+                        subject: proposal.current.subject,
+                        body: proposal.current.body,
+                      });
+                      setIsEditing(true);
+                    }}
+                  >
+                    Edit and revoke approval
+                  </button>
+                </>
               ) : (
                 <p className="decision-receipt" role="status">
-                  {proposal.status === "approved"
-                    ? `Approved by ${proposal.approvedBy}`
-                    : "Proposal rejected; no action is authorized."}
+                  Proposal rejected; no action is authorized.
                 </p>
               )}
             </>

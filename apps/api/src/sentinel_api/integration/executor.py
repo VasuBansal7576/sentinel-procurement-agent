@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Callable
 from decimal import Decimal
 from functools import partial
 from typing import Any, cast
 from uuid import UUID, uuid4
+
+from temporalio.exceptions import ApplicationError
 
 from sentinel_api.artifacts import generate_artifact_set
 from sentinel_api.domain import (
@@ -24,6 +27,7 @@ from sentinel_api.evaluation import (
     rank_candidates,
 )
 from sentinel_api.integration.brokers import ApprovalBrokerAdapter, await_result
+from sentinel_api.integration.demo import DemoProfile
 from sentinel_api.integration.models import IntegrationRecord
 from sentinel_api.integration.planner import deterministic_id
 from sentinel_api.integration.repository import IntegrationRepository
@@ -47,10 +51,12 @@ class CredentialFreeWorkExecutor:
         records: IntegrationRepository,
         event_store: EventStore,
         proposal_broker: ApprovalBrokerAdapter,
+        demo_profile: DemoProfile | None = None,
     ) -> None:
         self._records = records
         self._event_store = event_store
         self._proposal_broker = proposal_broker
+        self._demo_profile = demo_profile or DemoProfile()
 
     async def __call__(self, request: ChildActivityInput) -> WorkExecution:
         if request.work_item.kind != "end_to_end":
@@ -372,6 +378,8 @@ class CredentialFreeWorkExecutor:
         operation: Callable[[], object],
     ) -> Any:
         run_id = UUID(request.parent_run_id)
+        if self._demo_profile.enabled and self._demo_profile.step_delay_seconds:
+            await asyncio.sleep(self._demo_profile.step_delay_seconds)
         base_key = (
             f"executor:{request.work_item.work_item_id}:"
             f"attempt:{request.attempt}:revision:{request.request_revision_number}:{step}"
@@ -392,6 +400,15 @@ class CredentialFreeWorkExecutor:
                 idempotency_key=f"{base_key}:started",
             ),
         )
+        if (
+            self._demo_profile.enabled
+            and self._demo_profile.failure_step == step
+            and request.attempt == 1
+        ):
+            raise ApplicationError(
+                f"Demo browser/tool failure at {step}; retry from the durable checkpoint",
+                type="transient",
+            )
         result = await await_result(operation())
         await self._event_store.append_event(
             run_id,

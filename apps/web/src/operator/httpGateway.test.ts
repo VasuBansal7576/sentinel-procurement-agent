@@ -55,7 +55,7 @@ describe("HTTP operator gateway", () => {
     ]);
     expect(JSON.parse(fetchMock.mock.calls[4][1].body)).toMatchObject({
       text: "Require twenty days",
-      changed_dependencies: ["request:scope"],
+      changed_dependencies: ["request:requirements"],
     });
     expect(JSON.parse(fetchMock.mock.calls[5][1].body)).toMatchObject({
       decision: "approve",
@@ -70,7 +70,7 @@ describe("HTTP operator gateway", () => {
 
     expect(sessions.length).toBeGreaterThan(0);
     expect(gateway.isFixture).toBe(true);
-    expect(gateway.sourceLabel).toContain("fixture");
+    expect(gateway.sourceLabel.toLowerCase()).toContain("fixture");
   });
 
   it("does not hide an acknowledged command conflict behind demo data", async () => {

@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sentinel_api.application.walking_skeleton import InMemoryRunStore
 from sentinel_api.config import get_settings
 from sentinel_api.email import InMemoryEmailExecutionStore, PostgresEmailExecutionStore
+from sentinel_api.integration.demo import DemoProfile
 from sentinel_api.integration.event_store import InMemoryEventStore
 from sentinel_api.integration.executor import CredentialFreeWorkExecutor
 from sentinel_api.integration.repository import (
@@ -29,6 +30,7 @@ from sentinel_api.workflows.activities import RuntimeActivities
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
+    demo_profile = DemoProfile.from_settings(settings)
     if settings.persistence_mode == "memory":
         yield
         return
@@ -43,6 +45,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             records=records,
             event_store=event_store,
             proposal_broker=app.state.approval_broker,
+            demo_profile=demo_profile,
         )
         activities = RuntimeActivities(event_store, executor)
         app.state.integration_service = IntegrationService(
@@ -54,6 +57,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
                 task_queue="sentinel-procurement",
             ),
             proposal_broker=app.state.approval_broker,
+            runtime_disclosure=demo_profile.disclosure,
         )
         app.state.runtime_activities = activities
         app.state.email_execution_store = PostgresEmailExecutionStore(event_store.connection_pool)
@@ -62,6 +66,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    demo_profile = DemoProfile.from_settings(settings)
     app = FastAPI(
         title="Sentinel API",
         version="0.1.0",
@@ -76,6 +81,7 @@ def create_app() -> FastAPI:
         records=memory_records,
         event_store=memory_events,
         proposal_broker=app.state.approval_broker,
+        demo_profile=demo_profile,
     )
     activities = RuntimeActivities(memory_events, executor)
     app.state.event_store = memory_events
@@ -87,6 +93,7 @@ def create_app() -> FastAPI:
             activities=activities,
         ),
         proposal_broker=app.state.approval_broker,
+        runtime_disclosure=demo_profile.disclosure,
     )
     app.state.runtime_activities = activities
     app.state.email_execution_store = InMemoryEmailExecutionStore()
