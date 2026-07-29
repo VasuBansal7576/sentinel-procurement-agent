@@ -20,6 +20,8 @@ An ambiguous provider timeout enters `OUTCOME_UNKNOWN`. It cannot return to
 dispatch until reconciliation produces `SAFE_TO_RETRY`; reconciliation may
 instead confirm the effect or require an operator.
 
-The current broker uses an in-memory repository so its invariants can be tested
-without credentials. PR 4's durable transaction boundary will provide the
-persistent repository before this branch is eligible to merge.
+The in-memory broker keeps the invariants fast to test without credentials.
+Production composition installs the PostgreSQL broker on the application-owned
+connection pool. Proposal versions, decisions, permits, action intents, and
+outcomes survive restart; a row lock makes permit consumption and intent
+creation a single transaction.

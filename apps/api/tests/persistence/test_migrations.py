@@ -10,7 +10,7 @@ from sentinel_api.persistence.migrations import MigrationError, discover_migrati
 def test_migrations_are_ordered_and_cover_required_storage() -> None:
     migrations = discover_migrations()
 
-    assert [migration.version for migration in migrations] == ["0001", "0002"]
+    assert [migration.version for migration in migrations] == ["0001", "0002", "0003"]
     combined = "\n".join(migration.sql for migration in migrations)
     for table in (
         "sentinel.runs",
@@ -19,6 +19,11 @@ def test_migrations_are_ordered_and_cover_required_storage() -> None:
         "sentinel.run_projection",
         "sentinel.work_item_projection",
         "sentinel.subagent_projection",
+        "sentinel.proposals",
+        "sentinel.proposal_versions",
+        "sentinel.approval_permits",
+        "sentinel.action_intents",
+        "sentinel.action_outcomes",
     ):
         assert f"CREATE TABLE {table}" in combined
     assert "event_outbox_pending_idx" in combined

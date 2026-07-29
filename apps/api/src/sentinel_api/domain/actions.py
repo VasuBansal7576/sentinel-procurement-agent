@@ -15,6 +15,7 @@ class ProposalStatus(StrEnum):
     DRAFT = "draft"
     PENDING_APPROVAL = "pending_approval"
     APPROVED = "approved"
+    AUTHORIZED = "authorized"
     REJECTED = "rejected"
     SUPERSEDED = "superseded"
     EXECUTED = "executed"

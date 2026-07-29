@@ -36,7 +36,7 @@ async def store() -> AsyncIterator[PostgresEventStore]:
 
     event_store = PostgresEventStore.from_url(database_url, max_size=20)
     await event_store.open()
-    assert await event_store.migrate() == ("0001", "0002")
+    assert await event_store.migrate() == ("0001", "0002", "0003")
     assert await event_store.migrate() == ()
     try:
         yield event_store

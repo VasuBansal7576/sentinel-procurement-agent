@@ -11,6 +11,9 @@ Migration order:
    per-run event journal, and transactional outbox.
 2. `0002_operator_projections.sql` creates session, work-tree, and subagent
    projections and installs the journal immutability triggers.
+3. `0003_protected_actions.sql` stores immutable proposal versions, policy
+   decisions, single-use approval permits, action intents, and external-effect
+   outcomes.
 
 ## Projection event payloads
 

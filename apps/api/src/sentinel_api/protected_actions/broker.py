@@ -248,7 +248,9 @@ class ApprovalBroker:
             )
             self._consumed_permit_ids.add(permit.id)
             self._permits[permit.id] = permit.model_copy(update={"consumed_at": authorized_at})
-            record.proposal = record.proposal.model_copy(update={"status": ProposalStatus.EXECUTED})
+            record.proposal = record.proposal.model_copy(
+                update={"status": ProposalStatus.AUTHORIZED}
+            )
             return AuthorizedAction(
                 intent=intent,
                 canonical_payload=version.canonical_payload,

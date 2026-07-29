@@ -17,6 +17,7 @@ from sentinel_api.protected_actions.outcomes import (
     InvalidOutcomeTransition,
     OutcomeMachine,
 )
+from sentinel_api.protected_actions.postgres import PostgresApprovalBroker
 
 __all__ = [
     "ApprovalBroker",
@@ -27,6 +28,7 @@ __all__ = [
     "InvalidOutcomeTransition",
     "OutcomeMachine",
     "PolicyDecision",
+    "PostgresApprovalBroker",
     "ProposalDiff",
     "canonical_json",
     "payload_digest",

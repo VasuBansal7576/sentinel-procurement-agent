@@ -4,6 +4,7 @@ from uuid import uuid4
 import pytest
 
 from sentinel_api.domain import OrganizationPolicy, RequestPolicyOverlay, utc_now
+from sentinel_api.domain.actions import ProposalStatus
 from sentinel_api.domain.policy import ProtectedAction, resolve_policy
 from sentinel_api.protected_actions import (
     ApprovalBroker,
@@ -86,6 +87,7 @@ def test_exact_current_version_can_be_approved_and_consumed_once() -> None:
     )
 
     assert authorized.intent.payload_fingerprint == version.canonical_payload_sha256
+    assert broker.get_proposal(permit.proposal_id).status is ProposalStatus.AUTHORIZED
     with pytest.raises(AuthorizationError, match="already been consumed"):
         broker.authorize_and_consume(
             permit_id=permit.id,

@@ -14,7 +14,7 @@ It is updated by the PR that introduces each capability.
 | Pause, resume, redirect, queued instruction | 7, 9 | Workflow and operator-journey tests | Planned |
 | Selective reuse after revision | 2, 7 | Direct and transitive invalidation unit tests; runtime integration pending | In progress |
 | Claim-level evidence and conflicts | 5, 6 | Immutable snapshots, exact-span hashes, taint, freshness, conflicts, isolation, acceptable-evidence enforcement, and adversarial boundary tests implemented; live adapters pending | In progress |
-| Exact editable approval | 8, 9 | Canonical payload, version diff, single-use permit, commit-time authorization, and outcome tests implemented; UI pending | In progress |
+| Exact editable approval | 8, 9 | Canonical payload, version diff, policy-bound single-use permit, commit-time authorization, durable intent/outcome transaction, concurrent-consumption and restart tests implemented; UI pending | In progress |
 | Durable close/reopen and SSE replay | 4, 7, 9 | PostgreSQL journal, projections, outbox, Last-Event-ID replay, and application-lifespan tests implemented; workflow/UI journeys pending | In progress |
 | Failure recovery | 7, 12 | Worker/browser termination test evidence | Planned |
 | Downloadable artifacts | 3, 6, 9 | Deterministic requirements Markdown, comparison XLSX, recommendation Markdown, and RFQ ZIP generators implemented with stable hashes and spreadsheet-injection protection; workbench integration pending | In progress |
