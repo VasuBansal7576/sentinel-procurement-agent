@@ -34,6 +34,7 @@ with workflow.unsafe.imports_passed_through():
         QueueMessageCommand,
         RedirectCommand,
         ResumeCommand,
+        RetryWorkCommand,
         RunResultStatus,
         WorkflowSnapshot,
         WorkState,
@@ -46,7 +47,7 @@ class _AcceptedCommand:
     sequence: int
     command_id: str
     kind: CommandKind
-    value: PauseCommand | ResumeCommand | RedirectCommand | QueueMessageCommand
+    value: PauseCommand | ResumeCommand | RedirectCommand | QueueMessageCommand | RetryWorkCommand
 
 
 _JOURNAL_RETRY = RetryPolicy(
@@ -131,6 +132,11 @@ class ProcurementParentWorkflow:
                     if state.status is WorkStatus.PENDING
                 ]
                 if not pending:
+                    recoverable = self._recoverable_failures()
+                    if recoverable:
+                        await self._record_recovery_available(recoverable)
+                        await workflow.wait_condition(self._has_unprocessed_commands)
+                        continue
                     break
                 for item_id in pending[: self._request.max_concurrency]:
                     if self._paused or self._has_unprocessed_commands():
@@ -267,6 +273,30 @@ class ProcurementParentWorkflow:
         if any(message.message_id == command.message_id for message in self._messages):
             raise ValueError("message_id must be unique")
 
+    @workflow.update
+    def retry_work(self, command: RetryWorkCommand) -> CommandAck:
+        existing = self._acks.get(command.command_id)
+        if existing is not None:
+            return existing
+        return self._accept(command.command_id, CommandKind.RETRY_WORK, command)
+
+    @retry_work.validator
+    def validate_retry_work(self, command: RetryWorkCommand) -> None:
+        self._validate_command_id(command.command_id)
+        if self._is_duplicate(command.command_id, CommandKind.RETRY_WORK, command):
+            return
+        if not command.reason.strip():
+            raise ValueError("retry reason must not be blank")
+        state = self._states.get(command.work_item_id)
+        if state is None:
+            raise ValueError("work item does not belong to this run")
+        if state.status is not WorkStatus.FAILED:
+            raise ValueError("only failed work can be retried")
+        if state.attempt != command.expected_attempt:
+            raise ValueError("retry expected_attempt does not match the failed attempt")
+        if state.failure is None or not state.failure.retryable:
+            raise ValueError("failed work is not safely retryable")
+
     @workflow.query
     def state(self) -> WorkflowSnapshot:
         return WorkflowSnapshot(
@@ -291,7 +321,9 @@ class ProcurementParentWorkflow:
         self,
         command_id: str,
         kind: CommandKind,
-        value: PauseCommand | ResumeCommand | RedirectCommand | QueueMessageCommand,
+        value: (
+            PauseCommand | ResumeCommand | RedirectCommand | QueueMessageCommand | RetryWorkCommand
+        ),
     ) -> bool:
         existing = self._acks.get(command_id)
         if existing is None:
@@ -307,7 +339,9 @@ class ProcurementParentWorkflow:
         self,
         command_id: str,
         kind: CommandKind,
-        value: PauseCommand | ResumeCommand | RedirectCommand | QueueMessageCommand,
+        value: (
+            PauseCommand | ResumeCommand | RedirectCommand | QueueMessageCommand | RetryWorkCommand
+        ),
     ) -> CommandAck:
         self._command_sequence += 1
         ack = CommandAck(
@@ -381,6 +415,10 @@ class ProcurementParentWorkflow:
                 redirect = command.value
                 assert isinstance(redirect, RedirectCommand)
                 await self._apply_redirect(redirect)
+            elif command.kind is CommandKind.RETRY_WORK:
+                retry = command.value
+                assert isinstance(retry, RetryWorkCommand)
+                await self._apply_retry(retry)
             self._processed_command_sequence = command.sequence
 
     async def _record_run_control(
@@ -429,6 +467,62 @@ class ProcurementParentWorkflow:
                 },
                 actor_id="operator",
                 idempotency_key=f"message:{command.message_id}:applied",
+            )
+        )
+
+    async def _apply_retry(self, command: RetryWorkCommand) -> None:
+        state = self._states[command.work_item_id]
+        self._states[command.work_item_id] = WorkState(
+            work_item_id=command.work_item_id,
+            status=WorkStatus.PENDING,
+            attempt=state.attempt,
+            request_revision_number=self._request_revision_number,
+        )
+        self._results.pop(command.work_item_id, None)
+        await self._journal(
+            JournalEvent(
+                run_id=self._request.run_id,
+                event_type="work.retry_requested",
+                status="recovering",
+                summary=command.reason,
+                payload={
+                    "status": "recovering",
+                    "failed_attempt": state.attempt,
+                    "next_attempt": state.attempt + 1,
+                },
+                work_item_id=command.work_item_id,
+                actor_id="operator",
+                idempotency_key=f"command:{command.command_id}:applied",
+            )
+        )
+
+    def _recoverable_failures(self) -> tuple[WorkState, ...]:
+        return tuple(
+            state
+            for state in self._states.values()
+            if (
+                state.status is WorkStatus.FAILED
+                and state.failure is not None
+                and state.failure.retryable
+            )
+        )
+
+    async def _record_recovery_available(
+        self,
+        recoverable: tuple[WorkState, ...],
+    ) -> None:
+        attempts = sorted(f"{state.work_item_id}:{state.attempt}" for state in recoverable)
+        await self._journal(
+            JournalEvent(
+                run_id=self._request.run_id,
+                event_type="run.recovery_available",
+                status="blocked",
+                summary="Operator retry is available for failed work",
+                payload={
+                    "status": "blocked",
+                    "work_item_ids": [state.work_item_id for state in recoverable],
+                },
+                idempotency_key=f"recovery:{'|'.join(attempts)}",
             )
         )
 
