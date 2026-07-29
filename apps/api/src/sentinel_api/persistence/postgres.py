@@ -149,6 +149,12 @@ class PostgresEventStore:
     def __init__(self, pool: AsyncConnectionPool[AsyncConnection[Row]]) -> None:
         self._pool = pool
 
+    @property
+    def connection_pool(self) -> AsyncConnectionPool[AsyncConnection[Row]]:
+        """Share the application-owned pool with transactional repositories."""
+
+        return self._pool
+
     @classmethod
     def from_url(
         cls,
