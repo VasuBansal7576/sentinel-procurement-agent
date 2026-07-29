@@ -10,7 +10,12 @@ from sentinel_api.persistence.migrations import MigrationError, discover_migrati
 def test_migrations_are_ordered_and_cover_required_storage() -> None:
     migrations = discover_migrations()
 
-    assert [migration.version for migration in migrations] == ["0001", "0002", "0003"]
+    assert [migration.version for migration in migrations] == [
+        "0001",
+        "0002",
+        "0003",
+        "0004",
+    ]
     combined = "\n".join(migration.sql for migration in migrations)
     for table in (
         "sentinel.runs",
@@ -29,6 +34,7 @@ def test_migrations_are_ordered_and_cover_required_storage() -> None:
     assert "event_outbox_pending_idx" in combined
     assert "reject_journal_mutation" in combined
     assert "UNIQUE (run_id, per_run_sequence)" in combined
+    assert "provider_request_fingerprint" in combined
 
 
 def test_migration_discovery_rejects_duplicate_versions(tmp_path: Path) -> None:

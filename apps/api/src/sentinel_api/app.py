@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from sentinel_api.application.walking_skeleton import InMemoryRunStore
 from sentinel_api.config import get_settings
+from sentinel_api.email import InMemoryEmailExecutionStore, PostgresEmailExecutionStore
 from sentinel_api.persistence.runtime import event_store_runtime
 from sentinel_api.protected_actions import ApprovalBroker, PostgresApprovalBroker
 from sentinel_api.routes.events import router as events_router
@@ -27,6 +28,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     ) as event_store:
         app.state.event_store = event_store
         app.state.approval_broker = PostgresApprovalBroker(event_store.connection_pool)
+        app.state.email_execution_store = PostgresEmailExecutionStore(event_store.connection_pool)
         yield
 
 
@@ -40,6 +42,7 @@ def create_app() -> FastAPI:
     )
     app.state.run_store = InMemoryRunStore()
     app.state.approval_broker = ApprovalBroker()
+    app.state.email_execution_store = InMemoryEmailExecutionStore()
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[str(settings.web_origin)],
