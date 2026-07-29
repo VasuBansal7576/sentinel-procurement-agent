@@ -166,6 +166,14 @@ class RequestRevision(ContractModel):
         lot_ids = [lot.id for lot in self.lots]
         if len(lot_ids) != len(set(lot_ids)):
             raise ValueError("lot IDs must be unique")
+        requirement_keys = [
+            requirement.key
+            for lot in self.lots
+            for line_item in lot.line_items
+            for requirement in line_item.requirements
+        ]
+        if len(requirement_keys) != len(set(requirement_keys)):
+            raise ValueError("requirement keys must be unique across a request revision")
         return self
 
 

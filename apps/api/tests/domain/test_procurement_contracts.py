@@ -15,6 +15,8 @@ from sentinel_api.domain import (
     Money,
     Quantity,
     RequestRevision,
+    Requirement,
+    RequirementPriority,
 )
 
 
@@ -74,3 +76,46 @@ def test_request_revision_requires_lineage_after_first_revision() -> None:
 def test_contracts_reject_unknown_fields() -> None:
     with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
         Money(amount=Decimal("10"), currency="USD", invented=True)  # type: ignore[call-arg]
+
+
+def test_requirement_keys_are_unique_across_the_request_revision() -> None:
+    shared_requirement = Requirement(
+        key="delivery",
+        label="Delivery requirement",
+        description="Delivery within the requested window",
+        subject_path="delivery.days",
+        priority=RequirementPriority.MANDATORY,
+        criterion=Criterion(
+            type=CriterionType.NUMBER,
+            operator=CriterionOperator.AT_MOST,
+            target=10,
+            unit="day",
+        ),
+    )
+    first = lot()
+    second = Lot(
+        name="Secondary lot",
+        line_items=(
+            first.line_items[0].model_copy(
+                update={
+                    "id": uuid4(),
+                    "requirements": (shared_requirement,),
+                }
+            ),
+        ),
+    )
+    first_with_requirement = first.model_copy(
+        update={
+            "line_items": (
+                first.line_items[0].model_copy(update={"requirements": (shared_requirement,)}),
+            )
+        }
+    )
+
+    with pytest.raises(ValidationError, match="unique across"):
+        RequestRevision(
+            case_id=uuid4(),
+            revision_number=1,
+            reason="Initial request",
+            lots=(first_with_requirement, second),
+        )
