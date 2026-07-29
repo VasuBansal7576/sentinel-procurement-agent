@@ -403,6 +403,8 @@ class PostgresEventStore:
             return
 
         status_value = updates.get("status")
+        if status_value in {"queued", "running", "recovering"}:
+            updates["completed_at"] = None
         await connection.execute(
             """
             UPDATE sentinel.runs
@@ -622,6 +624,10 @@ class PostgresEventStore:
                 return previous[key]
             return default
 
+        status_value = str(payload.get("status", event.status))
+        completed_at = (
+            None if status_value in {"queued", "running", "recovering"} else value("completed_at")
+        )
         await connection.execute(
             """
             INSERT INTO sentinel.subagent_projection (
@@ -652,11 +658,11 @@ class PostgresEventStore:
                 value("child_run_id"),
                 value("label"),
                 value("goal"),
-                payload.get("status", event.status),
+                status_value,
                 Jsonb(value("tool_scope", [])),
                 event.sequence,
                 value("started_at"),
-                value("completed_at"),
+                completed_at,
                 previous["created_at"] if previous is not None else event.created_at,
                 event.created_at,
             ),

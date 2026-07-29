@@ -14,8 +14,8 @@ it does not imply live model, browser, market-data, or email execution.
 | Pause, child cancellation, resume | Durable workflow updates and cooperative child cancellation tests; operator controls in the workbench and `docs/demo/operator-runbook.md` | Verified |
 | Queued instruction | Durable acknowledgement/idempotency tests and command history projection; queue journey in the runbook | Verified |
 | Redirect with selective reuse | Direct/transitive invalidation and Temporal redirect tests; HTTP redirect changes `request:requirements`, retaining candidate/evidence references while regenerating dependent evaluation, artifacts, and proposal | Verified |
-| Close/reopen and `Last-Event-ID` reconnect | PostgreSQL journal/projections/outbox, SSE replay tests, API-first gateway reconnect test, and browser close/reopen checklist | Verified automatically; final recording is human-only |
-| Real worker termination and restart | Temporal restart test plus two local production-worker `Ctrl-C`/restart trials against Compose, both clean exit 0 without traceback | Verified |
+| Close/reopen and `Last-Event-ID` reconnect | PostgreSQL journal/projections/outbox, SSE replay tests, API-first gateway reconnect test, and Computer Use close/new-tab/reopen restoration to the same run | Verified |
+| Real worker termination and restart | Temporal restart test plus a Computer Use journey that stopped the real worker while the run projection remained active, restarted it against Compose, and completed the same workflow ID | Verified |
 | Intentional tool failure and recovery without restart | Explicit development-only `DemoProfile`, production rejection, first-attempt deterministic failure test, durable blocked state, retry safety classification, and exact-work targeted retry tests | Verified |
 | Clear blocked/recoverable failure state | Work-tree blocker, attempt metadata, safe-to-retry gate, recovering state, persistent API error treatment, and the failure/view table in `MEMO.md` | Verified |
 | Temporal replay determinism | Replay and worker-restart suites run against local Temporal; selective reuse and protected effects remain deterministic | Verified |
@@ -30,7 +30,7 @@ it does not imply live model, browser, market-data, or email execution.
 | Downloadable deliverables | Requirements Markdown, comparison XLSX, recommendation Markdown, and RFQ ZIP generated deterministically and exposed through scoped downloads | Verified |
 | Operator-first structural workbench | Persistent run rail, run header, nested work tree, evidence ledger, artifact/proposal rail, command console, explicit projection/fake boundary, and designed empty/loading/error states | Verified |
 | Accessibility and responsive behavior | Semantic landmarks/tree/tabs/table, skip link, live region, keyboard tab roving, visible focus, reduced-motion rule, mobile layout with no horizontal document overflow, and frontend tests | Verified by Vitest and local in-app browser at 1280×720 and 390×844 |
-| Native raw traces | Seven completed native Codex JSONL exports, transparent per-field redaction logs, append-only `traces/manifest.jsonl`, deterministic exporter, hash/count verification, and credential scan | Verified; active parent and PR 12 final snapshots intentionally deferred |
+| Native raw traces | Eight completed PR-task native Codex JSONL exports, transparent per-field redaction logs, append-only `traces/manifest.jsonl`, deterministic exporter, hash/count verification, and credential scan | Verified; active parent final snapshot is deferred until handoff |
 | Truthful submission documents | Current `README.md`, two-page-budget `MEMO.md`, operator demo runbook, credential checklist, and this ledger | Verified |
 | Operator-perspective demonstration | `docs/demo/operator-runbook.md` covers the complete hard journey and stops before real send | Runbook verified; recording and review remain a human submission step |
 | Controlled real email | Provider boundary, recipient gate, exact permit, durable outcomes, suppression, and reconciliation exist; no live provider call or send occurred | Intentionally deferred until every fake-mode gate passes, credentials are supplied out of band, and a new explicit human approval is given |
@@ -40,20 +40,24 @@ it does not imply live model, browser, market-data, or email execution.
 - Ruff check and format check: passed.
 - mypy: 72 source files, no issues.
 - Exact locked bootstrap (`uv sync --locked` and `npm ci`): passed.
-- Full Python suite with real Temporal enabled: 182 collected, 171 passed,
-  11 skipped, one third-party warning.
-- Designated real PostgreSQL suite: 15 passed.
+- Full Python suite with real Temporal enabled: 185 collected, 172 passed,
+  13 service-gated tests skipped, one third-party warning.
+- Designated real PostgreSQL suite: 17 passed.
+- Designated Temporal replay/restart/cancellation suite: 6 passed.
 - Frontend ESLint and TypeScript: passed.
 - Frontend Vitest: 2 files, 12 tests passed.
 - Frontend production build: passed.
 - Docker Compose configuration: passed; PostgreSQL healthy and Temporal
   running locally.
-- Real worker shutdown/restart: two clean `Ctrl-C` exits, no traceback.
-- Native trace verification: seven snapshots verified; no credential patterns
+- Real worker shutdown/restart: the browser-visible run remained durable while
+  the worker was offline and completed after the worker restarted.
+- Native trace verification: eight PR-task snapshots verified; no credential patterns
   remain.
-- Browser QA: API-backed create/run view, explicit fake boundary, evidence,
-  artifacts, proposal, empty/error states, keyboard tabs, focus retention, and
-  390 px responsive layout inspected. No remote page assets were loaded.
+- Computer Use QA: API-backed create/run, deliberate failure and targeted retry,
+  pause/resume, queued guidance, revision redirect, tab close/reopen,
+  worker stop/restart, keyboard tabs, artifact download, exact approval, and
+  edit-after-approval invalidation passed. The 390 px responsive layout was
+  separately inspected. No remote page assets were loaded.
 
 The skipped Python tests are service-gated tests outside the enabled Temporal
 set; the designated PostgreSQL run above supplies the real database evidence.

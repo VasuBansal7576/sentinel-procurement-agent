@@ -188,6 +188,106 @@ async def test_projection_rebuild_restores_run_work_and_subagent_views(
     assert subagents[0].tool_scope == ("search.query", "browser.read")
 
 
+async def test_retry_reopens_terminal_subagent_projection(
+    store: PostgresEventStore,
+) -> None:
+    run = NewRun(title="Recover failed subagent")
+    await store.create_run(run)
+    subagent_id = uuid4()
+    await store.append_event(
+        run.run_id,
+        EventDraft(
+            event_type="subagent.started",
+            status="running",
+            summary="Research child started",
+            payload={
+                "subagent_id": str(subagent_id),
+                "label": "Research child",
+                "goal": "Collect supplier evidence",
+                "started_at": "2026-07-29T12:00:00+00:00",
+            },
+        ),
+    )
+    await store.append_event(
+        run.run_id,
+        EventDraft(
+            event_type="subagent.failed",
+            status="failed",
+            summary="Research child failed",
+            payload={
+                "subagent_id": str(subagent_id),
+                "completed_at": "2026-07-29T12:01:00+00:00",
+            },
+        ),
+    )
+
+    await store.append_event(
+        run.run_id,
+        EventDraft(
+            event_type="subagent.started",
+            status="running",
+            summary="Research child restarted",
+            payload={
+                "subagent_id": str(subagent_id),
+                "started_at": "2026-07-29T12:02:00+00:00",
+            },
+        ),
+    )
+
+    subagent = (await store.list_subagents(run.run_id))[0]
+    assert subagent.status == "running"
+    assert subagent.completed_at is None
+
+
+async def test_retry_reopens_terminal_run_projection(
+    store: PostgresEventStore,
+) -> None:
+    run = NewRun(title="Recover failed child run")
+    await store.create_run(run)
+    await store.append_event(
+        run.run_id,
+        EventDraft(
+            event_type="run.status_changed",
+            status="running",
+            summary="Child run started",
+            payload={
+                "status": "running",
+                "started_at": "2026-07-29T12:00:00+00:00",
+            },
+        ),
+    )
+    await store.append_event(
+        run.run_id,
+        EventDraft(
+            event_type="run.status_changed",
+            status="failed",
+            summary="Child run failed",
+            payload={
+                "status": "failed",
+                "completed_at": "2026-07-29T12:01:00+00:00",
+            },
+        ),
+    )
+
+    await store.append_event(
+        run.run_id,
+        EventDraft(
+            event_type="run.status_changed",
+            status="running",
+            summary="Child run restarted",
+            payload={
+                "status": "running",
+                "started_at": "2026-07-29T12:02:00+00:00",
+            },
+        ),
+    )
+
+    reopened = await store.get_run(run.run_id)
+    assert reopened is not None
+    assert reopened.status == "running"
+    assert reopened.completed_at is None
+
+
 async def test_invalid_projection_event_rolls_back_event_outbox_and_sequence(
     store: PostgresEventStore,
 ) -> None:
