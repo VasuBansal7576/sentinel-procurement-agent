@@ -70,7 +70,40 @@ The operator-perspective demo is intended to show:
 ## Documentation
 
 - [Architecture research and assignment acceptance matrix](docs/procurement-agent-architecture-research.md)
+- [Implementation control and merge policy](docs/implementation/README.md)
+- [Implementation PR plan](docs/implementation/pr-plan.md)
+- [Acceptance evidence ledger](docs/implementation/acceptance-ledger.md)
 - Development-agent traces will be stored under [`traces/`](traces/) as implementation begins.
+
+## Local development
+
+Prerequisites are Python 3.12–3.14, [uv](https://docs.astral.sh/uv/), Node.js 22,
+npm, Docker, and Docker Compose.
+
+```bash
+cp .env.example .env
+make bootstrap
+make infra-up
+```
+
+Run the API and workbench in separate terminals:
+
+```bash
+.venv/bin/sentinel-api
+npm run dev:web
+```
+
+The API is available at `http://localhost:8000`, its development documentation
+at `http://localhost:8000/api/docs`, and the workbench at
+`http://localhost:5173`.
+
+Run the same credential-independent quality gate used before every merge:
+
+```bash
+make check
+npm run build
+docker compose config --quiet
+```
 
 ## Current scope
 
@@ -87,4 +120,3 @@ This repository will maintain:
 - Explicit disclosure of demo-only or unimplemented production components
 - Test fixtures clearly separated from real demonstration evidence
 - No scripted logs presented as live execution
-

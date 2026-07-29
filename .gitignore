@@ -14,6 +14,8 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .venv/
+.coverage
+htmlcov/
 
 # JavaScript
 node_modules/
@@ -21,6 +23,7 @@ dist/
 build/
 .vite/
 coverage/
+*.tsbuildinfo
 
 # Local runtime data
 *.db
@@ -28,8 +31,8 @@ coverage/
 *.sqlite3
 artifacts/
 evidence/
+.sentinel/
 
 # Temporary source material
 tmp/
 X-Arc Take-home Harness.pdf
-
