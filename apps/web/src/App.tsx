@@ -4,7 +4,7 @@ import type { CreateRunInput } from "./api";
 import { ActionRail } from "./operator/ActionRail";
 import { CommandComposer } from "./operator/CommandComposer";
 import { EvidenceCanvas } from "./operator/EvidenceCanvas";
-import { createFixtureGateway } from "./operator/fixtureGateway";
+import { createApiFirstGateway } from "./operator/httpGateway";
 import type {
   OperatorRun,
   OperatorWorkbenchGateway,
@@ -27,7 +27,7 @@ interface AppProps {
 }
 
 export function App({ gateway }: AppProps) {
-  const [workbenchGateway] = useState(() => gateway ?? createFixtureGateway());
+  const [workbenchGateway] = useState(() => gateway ?? createApiFirstGateway());
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [run, setRun] = useState<OperatorRun | null>(null);
   const [isLoading, setIsLoading] = useState(true);

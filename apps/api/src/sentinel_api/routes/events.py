@@ -9,9 +9,13 @@ from fastapi.responses import StreamingResponse
 
 from sentinel_api.application.walking_skeleton import InMemoryRunStore
 from sentinel_api.persistence.protocols import EventStore
-from sentinel_api.realtime import ResumableEventStream, parse_last_event_id
+from sentinel_api.realtime import ResumableEventStream, encode_event, parse_last_event_id
 
 router = APIRouter(tags=["runs"])
+_STREAM_HEADERS = {
+    "Cache-Control": "no-cache, no-transform",
+    "X-Accel-Buffering": "no",
+}
 
 
 def event_store_from_app(request: Request) -> EventStore | None:
@@ -19,6 +23,32 @@ def event_store_from_app(request: Request) -> EventStore | None:
 
     store = getattr(request.app.state, "event_store", None)
     return cast(EventStore, store) if store is not None else None
+
+
+def _walking_skeleton_stream(
+    store: object,
+    run_id: UUID,
+    cursor: int,
+) -> StreamingResponse | None:
+    if not isinstance(store, InMemoryRunStore):
+        return None
+    events = store.events_after(run_id, cursor)
+    if events is None:
+        return None
+
+    def finite_stream() -> Iterator[str]:
+        for event in events:
+            yield (
+                f"id: {event.sequence}\n"
+                f"event: {event.event_type}\n"
+                f"data: {event.model_dump_json()}\n\n"
+            )
+
+    return StreamingResponse(
+        finite_stream(),
+        media_type="text/event-stream",
+        headers=_STREAM_HEADERS,
+    )
 
 
 @router.get("/runs/{run_id}/events", response_class=StreamingResponse)
@@ -45,36 +75,34 @@ async def stream_run_events(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="event store is not configured",
             )
-        events = memory_store.events_after(run_id, cursor)
-        if events is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="run not found")
-
-        def finite_stream() -> Iterator[str]:
-            for event in events:
-                yield (
-                    f"id: {event.sequence}\n"
-                    f"event: {event.event_type}\n"
-                    f"data: {event.model_dump_json()}\n\n"
-                )
-
-        return StreamingResponse(
-            finite_stream(),
-            media_type="text/event-stream",
-            headers={
-                "Cache-Control": "no-cache, no-transform",
-                "X-Accel-Buffering": "no",
-            },
-        )
+        fallback = _walking_skeleton_stream(memory_store, run_id, cursor)
+        if fallback is not None:
+            return fallback
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="run not found")
 
     if await store.get_run(run_id) is None:
+        memory_store = getattr(request.app.state, "run_store", None)
+        fallback = _walking_skeleton_stream(memory_store, run_id, cursor)
+        if fallback is not None:
+            return fallback
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="run not found")
+
+    if getattr(store, "finite_streams", False):
+        durable_events = await store.list_events(run_id, after_sequence=cursor)
+
+        def finite_durable_stream() -> Iterator[bytes]:
+            for event in durable_events:
+                yield encode_event(event)
+
+        return StreamingResponse(
+            finite_durable_stream(),
+            media_type="text/event-stream",
+            headers=_STREAM_HEADERS,
+        )
 
     stream = ResumableEventStream(store)
     return StreamingResponse(
         stream.iter_bytes(run_id, after_sequence=cursor),
         media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache, no-transform",
-            "X-Accel-Buffering": "no",
-        },
+        headers=_STREAM_HEADERS,
     )

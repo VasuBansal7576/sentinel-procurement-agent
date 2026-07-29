@@ -34,6 +34,7 @@ from sentinel_api.workflows.models import (
     QueueMessageCommand,
     RedirectCommand,
     ResumeCommand,
+    RetryWorkCommand,
     RunResultStatus,
     WorkExecution,
     WorkflowSnapshot,
@@ -63,6 +64,8 @@ class FakeRuntimeActivities:
         self.executions.append(request)
         if input_ref == "transient-once" and execution_count == 1:
             raise ApplicationError("temporary supplier outage", type="transient")
+        if input_ref == "recoverable-exhausted" and request.attempt == 1:
+            raise ApplicationError("supplier source is temporarily unavailable", type="transient")
         if input_ref == "terminal":
             raise ApplicationError(
                 "supplier source is permanently unavailable",
@@ -277,6 +280,77 @@ async def test_children_retry_fail_independently_and_replay() -> None:
         await replayer.replay_workflow(parent_history)
         for history in child_histories:
             await replayer.replay_workflow(history)
+
+
+@pytest.mark.asyncio
+async def test_exhausted_retryable_child_waits_for_targeted_operator_retry() -> None:
+    async with await WorkflowEnvironment.start_time_skipping(
+        download_dest_dir="/tmp/sentinel-temporal-test-server"
+    ) as environment:
+        fake = FakeRuntimeActivities()
+        task_queue = f"recoverable-{uuid4()}"
+        recoverable = make_item(
+            "Recoverable supplier source",
+            "recoverable-exhausted",
+            "evidence:recoverable",
+        )
+        request = make_run(recoverable, max_concurrency=1)
+        workflow_id = parent_workflow_id(request.run_id)
+
+        async with make_worker(environment, task_queue, fake):
+            handle = await start_procurement_run(
+                environment.client,
+                request,
+                task_queue=task_queue,
+            )
+            blocked = await wait_for_state(
+                handle,
+                lambda state: (
+                    state.work[0].status is WorkStatus.FAILED
+                    and state.work[0].failure is not None
+                    and state.work[0].failure.retryable
+                ),
+            )
+            async with asyncio.timeout(10):
+                while not any(
+                    event.event_type == "run.recovery_available" for event in fake.events
+                ):
+                    await asyncio.sleep(0.02)
+            retry = RetryWorkCommand(
+                command_id="command-retry-1",
+                work_item_id=recoverable.work_item_id,
+                expected_attempt=blocked.work[0].attempt,
+                reason="Operator retried from the failed supplier checkpoint",
+            )
+            retry_ack = await handle.execute_update(
+                ProcurementParentWorkflow.retry_work,
+                retry,
+            )
+            duplicate_ack = await handle.execute_update(
+                ProcurementParentWorkflow.retry_work,
+                retry,
+            )
+            result = await handle.result()
+            history = await handle.fetch_history()
+            child_histories = [
+                await environment.client.get_workflow_handle(
+                    f"{workflow_id}:child:{recoverable.work_item_id}:attempt:{attempt}"
+                ).fetch_history()
+                for attempt in (1, 2)
+            ]
+
+        assert retry_ack.kind is CommandKind.RETRY_WORK
+        assert duplicate_ack == retry_ack
+        assert result.status is RunResultStatus.COMPLETED
+        assert result.children[0].attempt == 2
+        assert fake.attempts["recoverable-exhausted"] == 4
+        assert any(event.event_type == "run.recovery_available" for event in fake.events)
+        assert any(event.event_type == "work.retry_requested" for event in fake.events)
+
+        replayer = Replayer(workflows=[ProcurementParentWorkflow, ProcurementChildWorkflow])
+        await replayer.replay_workflow(history)
+        for child_history in child_histories:
+            await replayer.replay_workflow(child_history)
 
 
 @pytest.mark.asyncio

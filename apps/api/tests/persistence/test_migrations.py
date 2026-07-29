@@ -15,6 +15,7 @@ def test_migrations_are_ordered_and_cover_required_storage() -> None:
         "0002",
         "0003",
         "0004",
+        "0005",
     ]
     combined = "\n".join(migration.sql for migration in migrations)
     for table in (
@@ -29,12 +30,27 @@ def test_migrations_are_ordered_and_cover_required_storage() -> None:
         "sentinel.approval_permits",
         "sentinel.action_intents",
         "sentinel.action_outcomes",
+        "sentinel.integration_records",
     ):
         assert f"CREATE TABLE {table}" in combined
     assert "event_outbox_pending_idx" in combined
     assert "reject_journal_mutation" in combined
     assert "UNIQUE (run_id, per_run_sequence)" in combined
     assert "provider_request_fingerprint" in combined
+    assert "PRIMARY KEY (run_id, record_ref)" in combined
+    assert "content_sha256" in combined
+
+
+def test_integration_migration_checksum_is_stable_and_discovery_is_idempotent() -> None:
+    first = discover_migrations()
+    second = discover_migrations()
+
+    integration = next(migration for migration in first if migration.version == "0005")
+    assert integration.checksum == next(
+        migration.checksum for migration in second if migration.version == "0005"
+    )
+    assert len(integration.checksum) == 64
+    assert integration.sql.count("CREATE TABLE sentinel.integration_records") == 1
 
 
 def test_migration_discovery_rejects_duplicate_versions(tmp_path: Path) -> None:

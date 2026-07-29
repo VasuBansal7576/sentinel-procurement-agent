@@ -41,6 +41,7 @@ class CommandKind(StrEnum):
     RESUME = "resume"
     REDIRECT = "redirect"
     QUEUE_MESSAGE = "queue_message"
+    RETRY_WORK = "retry_work"
 
 
 class MessageStatus(StrEnum):
@@ -196,6 +197,14 @@ class QueueMessageCommand:
     command_id: str
     message_id: str
     body: str
+
+
+@dataclass(frozen=True)
+class RetryWorkCommand:
+    command_id: str
+    work_item_id: str
+    expected_attempt: int
+    reason: str
 
 
 @dataclass(frozen=True)
