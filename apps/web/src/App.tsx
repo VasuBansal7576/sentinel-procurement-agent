@@ -1,6 +1,18 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 
-import { createRun, type CreateRunInput, type RunEvent, type RunView } from "./api";
+import type { CreateRunInput } from "./api";
+import { ActionRail } from "./operator/ActionRail";
+import { CommandComposer } from "./operator/CommandComposer";
+import { EvidenceCanvas } from "./operator/EvidenceCanvas";
+import { createFixtureGateway } from "./operator/fixtureGateway";
+import type {
+  OperatorRun,
+  OperatorWorkbenchGateway,
+  SessionSummary,
+} from "./operator/types";
+import { WorkTree } from "./operator/WorkTree";
+
+const ACTIVE_RUN_STORAGE_KEY = "sentinel.active-run-id";
 
 const initialRequest: CreateRunInput = {
   title: "",
@@ -10,79 +22,154 @@ const initialRequest: CreateRunInput = {
   unit: "each",
 };
 
-const streamedEventTypes = [
-  "run.created",
-  "request.normalized",
-  "artifact.created",
-  "run.completed",
-];
-
-function mergeEvent(run: RunView, event: RunEvent): RunView {
-  if (run.events.some((existing) => existing.event_id === event.event_id)) {
-    return run;
-  }
-  return {
-    ...run,
-    events: [...run.events, event].sort((left, right) => left.sequence - right.sequence),
-  };
+interface AppProps {
+  gateway?: OperatorWorkbenchGateway;
 }
 
-export function App() {
-  const [request, setRequest] = useState<CreateRunInput>(initialRequest);
-  const [run, setRun] = useState<RunView | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export function App({ gateway }: AppProps) {
+  const [workbenchGateway] = useState(() => gateway ?? createFixtureGateway());
+  const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [run, setRun] = useState<OperatorRun | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isMutating, setIsMutating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const runId = run?.id;
+  const [isCreating, setIsCreating] = useState(false);
+  const [request, setRequest] = useState<CreateRunInput>(initialRequest);
 
-  useEffect(() => {
-    if (!runId || typeof EventSource === "undefined") {
-      return;
-    }
-    const stream = new EventSource(`/api/runs/${runId}/events`);
-    const receive = (message: MessageEvent<string>) => {
-      const event = JSON.parse(message.data) as RunEvent;
-      setRun((current) => (current ? mergeEvent(current, event) : current));
-    };
-    streamedEventTypes.forEach((eventType) => stream.addEventListener(eventType, receive));
-    return () => stream.close();
-  }, [runId]);
+  const applyRun = useCallback((nextRun: OperatorRun) => {
+    setRun(nextRun);
+    setSessions((current) => {
+      const remaining = current.filter(
+        (session) => session.id !== nextRun.session.id,
+      );
+      return [nextRun.session, ...remaining];
+    });
+    window.localStorage.setItem(ACTIVE_RUN_STORAGE_KEY, nextRun.session.id);
+  }, []);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setIsSubmitting(true);
+  const loadWorkbench = useCallback(async () => {
     setError(null);
     try {
-      setRun(await createRun(request));
+      const nextSessions = await workbenchGateway.listSessions();
+      setSessions(nextSessions);
+      const restoredId = window.localStorage.getItem(ACTIVE_RUN_STORAGE_KEY);
+      const selectedId =
+        nextSessions.find((session) => session.id === restoredId)?.id ??
+        nextSessions[0]?.id;
+      if (selectedId) {
+        setRun(await workbenchGateway.getRun(selectedId));
+        window.localStorage.setItem(ACTIVE_RUN_STORAGE_KEY, selectedId);
+      } else {
+        setRun(null);
+      }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Unexpected request failure.");
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "The durable session index could not be loaded.",
+      );
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
+    }
+  }, [workbenchGateway]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => void loadWorkbench(), 0);
+    return () => window.clearTimeout(timer);
+  }, [loadWorkbench]);
+
+  useEffect(() => {
+    if (!run?.session.id || !workbenchGateway.subscribeRun) {
+      return;
+    }
+    return workbenchGateway.subscribeRun(run.session.id, applyRun);
+  }, [applyRun, run?.session.id, workbenchGateway]);
+
+  async function selectSession(runId: string) {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const selected = await workbenchGateway.getRun(runId);
+      setRun(selected);
+      window.localStorage.setItem(ACTIVE_RUN_STORAGE_KEY, runId);
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "The run could not be opened.",
+      );
+    } finally {
+      setIsLoading(false);
     }
   }
 
+  function retryLoad() {
+    setIsLoading(true);
+    void loadWorkbench();
+  }
+
+  async function mutate(operation: () => Promise<OperatorRun>): Promise<void> {
+    setIsMutating(true);
+    setError(null);
+    try {
+      applyRun(await operation());
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "The operator command was not acknowledged.",
+      );
+    } finally {
+      setIsMutating(false);
+    }
+  }
+
+  async function handleCreate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await mutate(() => workbenchGateway.createRun(request));
+    setRequest(initialRequest);
+    setIsCreating(false);
+  }
+
+  const controlAction = run?.session.status === "paused" ? "resume" : "pause";
+
   return (
-    <div className="workbench">
-      <header className="topbar">
-        <div>
-          <p className="eyebrow">Sentinel</p>
-          <h1>Procurement control room</h1>
-        </div>
-        <div className="environment">
-          <span aria-hidden="true" />
-          Credential-free development
-        </div>
-      </header>
+    <div className="operator-shell">
+      <a className="skip-link" href="#run-workspace">
+        Skip to active run
+      </a>
 
-      <main className="workspace">
-        <section className="intake" aria-labelledby="intake-heading">
-          <p className="section-index">01 / Intake</p>
-          <h2 id="intake-heading">Start with the need.</h2>
-          <p className="section-copy">
-            Describe any product or service. Sentinel converts it into a versioned
-            procurement request before research begins.
-          </p>
+      <aside className="session-sidebar" aria-labelledby="session-heading">
+        <div className="brand-lockup">
+          <span className="brand-mark" aria-hidden="true">
+            S
+          </span>
+          <div>
+            <p>Sentinel</p>
+            <span>Procurement operations</span>
+          </div>
+        </div>
 
-          <form onSubmit={handleSubmit}>
+        <div className="session-heading">
+          <div>
+            <p className="section-index">Durable sessions</p>
+            <h2 id="session-heading">Run history</h2>
+          </div>
+          <button
+            className="icon-button"
+            type="button"
+            aria-label={
+              isCreating ? "Close new request form" : "Create new request"
+            }
+            aria-expanded={isCreating}
+            onClick={() => setIsCreating((current) => !current)}
+          >
+            {isCreating ? "×" : "+"}
+          </button>
+        </div>
+
+        {isCreating ? (
+          <form className="new-request-form" onSubmit={handleCreate}>
             <label>
               Request title
               <input
@@ -92,7 +179,7 @@ export function App() {
                 onChange={(event) =>
                   setRequest({ ...request, title: event.target.value })
                 }
-                placeholder="Replace warehouse label printers"
+                placeholder="Renew field equipment"
               />
             </label>
             <label>
@@ -104,20 +191,19 @@ export function App() {
                 onChange={(event) =>
                   setRequest({ ...request, item_name: event.target.value })
                 }
-                placeholder="Industrial label printer"
+                placeholder="Equipment or service"
               />
             </label>
             <label>
-              Description
+              Need
               <textarea
                 required
                 minLength={3}
-                rows={4}
+                rows={3}
                 value={request.description}
                 onChange={(event) =>
                   setRequest({ ...request, description: event.target.value })
                 }
-                placeholder="Networked thermal printer, 300 dpi, compatible with..."
               />
             </label>
             <div className="field-pair">
@@ -125,9 +211,9 @@ export function App() {
                 Quantity
                 <input
                   required
-                  type="number"
                   min="0.0001"
                   step="any"
+                  type="number"
                   value={request.quantity}
                   onChange={(event) =>
                     setRequest({ ...request, quantity: event.target.value })
@@ -145,83 +231,204 @@ export function App() {
                 />
               </label>
             </div>
-            {error ? <p className="error">{error}</p> : null}
-            <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creating run…" : "Create procurement run"}
+            <button type="submit" disabled={isMutating}>
+              {isMutating ? "Starting…" : "Start run"}
             </button>
           </form>
-        </section>
+        ) : null}
 
-        <section className="run-panel" aria-labelledby="run-heading">
-          <div className="run-heading">
+        <nav className="session-list" aria-label="Procurement sessions">
+          {sessions.map((session) => (
+            <button
+              key={session.id}
+              type="button"
+              className={run?.session.id === session.id ? "selected" : ""}
+              aria-current={run?.session.id === session.id ? "page" : undefined}
+              onClick={() => void selectSession(session.id)}
+            >
+              <span
+                className={`session-state ${session.status}`}
+                aria-hidden="true"
+              />
+              <span>
+                <strong>{session.title}</strong>
+                <small>{session.requestLabel}</small>
+              </span>
+              <span className="session-meta">
+                r{session.revision} · {session.updatedLabel}
+              </span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="source-disclosure">
+          <span aria-hidden="true">◇</span>
+          <p>
+            <strong>Projection source</strong>
+            {workbenchGateway.sourceLabel}
+          </p>
+        </div>
+      </aside>
+
+      <main id="run-workspace" className="run-workspace" tabIndex={-1}>
+        {error ? (
+          <div className="load-failure" role="alert">
             <div>
-              <p className="section-index">02 / Observable run</p>
-              <h2 id="run-heading">{run?.title ?? "No active run"}</h2>
+              <strong>Workbench data unavailable</strong>
+              <p>{error}</p>
             </div>
-            <span className={`run-state ${run?.status ?? "idle"}`} role="status">
-              {run?.status ?? "waiting"}
-            </span>
+            <button type="button" onClick={retryLoad}>
+              Retry session load
+            </button>
           </div>
+        ) : null}
 
-          {run ? (
-            <>
+        {isLoading && !run ? (
+          <div className="workbench-loading" role="status">
+            Restoring durable session…
+          </div>
+        ) : run ? (
+          <>
+            <header className="run-header">
+              <div className="run-title">
+                <div className="run-breadcrumb">
+                  <span>Run history</span>
+                  <span aria-hidden="true">/</span>
+                  <span>{run.session.id}</span>
+                </div>
+                <h1>{run.session.title}</h1>
+                <p>{run.summary}</p>
+              </div>
+              <div className="run-controls">
+                <span
+                  className={`run-status ${run.session.status}`}
+                  role="status"
+                >
+                  <span aria-hidden="true" />
+                  {run.session.status}
+                </span>
+                <button
+                  className="secondary-button"
+                  type="button"
+                  disabled={
+                    isMutating ||
+                    !["running", "paused", "recovering"].includes(
+                      run.session.status,
+                    )
+                  }
+                  onClick={() =>
+                    void mutate(() =>
+                      workbenchGateway.controlRun(
+                        run.session.id,
+                        controlAction,
+                      ),
+                    )
+                  }
+                >
+                  {controlAction === "pause" ? "Pause run" : "Resume run"}
+                </button>
+              </div>
               <dl className="run-facts">
                 <div>
-                  <dt>Phase</dt>
-                  <dd>{run.current_phase}</dd>
+                  <dt>Active phase</dt>
+                  <dd>{run.activePhase}</dd>
                 </div>
                 <div>
-                  <dt>Revision</dt>
-                  <dd>01</dd>
+                  <dt>Request</dt>
+                  <dd>Revision {run.session.revision}</dd>
                 </div>
                 <div>
-                  <dt>Events</dt>
-                  <dd>{run.events.length.toString().padStart(2, "0")}</dd>
+                  <dt>Policy</dt>
+                  <dd>{run.policyLabel}</dd>
+                </div>
+                <div>
+                  <dt>Elapsed</dt>
+                  <dd>{run.elapsedLabel}</dd>
+                </div>
+                <div>
+                  <dt>Progress</dt>
+                  <dd>
+                    {run.progress.completed} of {run.progress.total} work items
+                  </dd>
+                </div>
+                <div>
+                  <dt>Attention</dt>
+                  <dd>
+                    {run.progress.active} active · {run.progress.blockers}{" "}
+                    blocker
+                    {run.progress.blockers === 1 ? "" : "s"}
+                  </dd>
                 </div>
               </dl>
-              <ol className="event-list" aria-label="Run activity">
-                {run.events.map((event) => (
-                  <li key={event.event_id}>
-                    <span className="event-sequence">
-                      {event.sequence.toString().padStart(2, "0")}
-                    </span>
-                    <div>
-                      <strong>{event.summary}</strong>
-                      <small>{event.event_type}</small>
-                    </div>
-                    <span className="event-status">{event.status}</span>
-                  </li>
-                ))}
-              </ol>
-            </>
-          ) : (
-            <div className="empty-state">
-              <span>⌁</span>
-              <p>Submit a request to create a typed run and inspect its event trail.</p>
-            </div>
-          )}
-        </section>
+            </header>
 
-        <aside className="artifact-rail" aria-labelledby="artifact-heading">
-          <p className="section-index">03 / Output</p>
-          <h2 id="artifact-heading">Artifacts</h2>
-          {run?.artifacts.length ? (
-            <ul>
-              {run.artifacts.map((artifact) => (
-                <li key={artifact.id}>
-                  <span>MD</span>
+            <div className="workbench-grid" aria-busy={isMutating}>
+              <section
+                className="work-tree-panel"
+                aria-labelledby="tree-heading"
+              >
+                <div className="panel-heading">
                   <div>
-                    <strong>{artifact.filename}</strong>
-                    <small>{artifact.size_bytes} bytes</small>
+                    <p className="section-index">Execution structure</p>
+                    <h2 id="tree-heading">Work tree</h2>
                   </div>
-                  <a href={artifact.download_url}>Download</a>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="rail-empty">Generated files will collect here.</p>
-          )}
-        </aside>
+                  <span>Glance → inspect</span>
+                </div>
+                <div className="tree-legend" aria-label="Work state legend">
+                  {(
+                    ["active", "completed", "remaining", "blocked"] as const
+                  ).map((state) => (
+                    <span key={state}>
+                      <i className={`state-mark ${state}`} aria-hidden="true" />
+                      {state}
+                    </span>
+                  ))}
+                </div>
+                <WorkTree
+                  key={run.session.id}
+                  nodes={run.workTree}
+                  onRetry={(workId) =>
+                    mutate(() =>
+                      workbenchGateway.retryWork(run.session.id, workId),
+                    )
+                  }
+                />
+              </section>
+
+              <EvidenceCanvas key={run.session.id} run={run} />
+
+              <ActionRail
+                key={`${run.session.id}-${run.proposal?.current.version ?? 0}`}
+                run={run}
+                onSaveProposal={(edit) =>
+                  mutate(() =>
+                    workbenchGateway.saveProposal(run.session.id, edit),
+                  )
+                }
+                onDecideProposal={(decision) =>
+                  mutate(() =>
+                    workbenchGateway.decideProposal(run.session.id, decision),
+                  )
+                }
+              />
+            </div>
+
+            <CommandComposer
+              key={run.session.id}
+              commands={run.commands}
+              onSend={(mode, text) =>
+                mutate(() =>
+                  workbenchGateway.sendCommand(run.session.id, mode, text),
+                )
+              }
+            />
+          </>
+        ) : (
+          <div className="workbench-loading">
+            No durable sessions yet. Start a procurement run from the session
+            rail.
+          </div>
+        )}
       </main>
     </div>
   );
