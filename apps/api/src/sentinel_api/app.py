@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from sentinel_api.config import get_settings
 from sentinel_api.routes.health import router as health_router
+from sentinel_api.routes.runs import router as runs_router
 
 
 def create_app() -> FastAPI:
@@ -22,4 +23,5 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.include_router(health_router, prefix="/api")
+    app.include_router(runs_router, prefix="/api")
     return app
