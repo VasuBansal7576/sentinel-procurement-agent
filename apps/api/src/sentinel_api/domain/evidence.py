@@ -33,6 +33,11 @@ class EvidenceObservation(ContractModel):
     request_revision_id: UUID
     candidate_id: UUID | None = None
     requirement_key: str = Field(pattern=r"^[a-z][a-z0-9_.-]{1,79}$")
+    evidence_type: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=80,
+    )
     value: ScalarValue
     normalized_unit: str | None = Field(default=None, max_length=64)
     classification: EvidenceClassification

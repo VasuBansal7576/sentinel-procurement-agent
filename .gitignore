@@ -29,8 +29,8 @@ coverage/
 *.db
 *.sqlite
 *.sqlite3
-artifacts/
-evidence/
+/artifacts/
+/evidence/
 .sentinel/
 
 # Temporary source material

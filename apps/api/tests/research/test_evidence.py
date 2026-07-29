@@ -210,6 +210,7 @@ def _observation(
         request_revision_id=revision_id,
         candidate_id=candidate_id,
         requirement_key=requirement_key,
+        evidence_type="supplier_page",
         value=value,
         classification=classification,
         extractor_version="test@1",

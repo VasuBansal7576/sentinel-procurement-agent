@@ -120,6 +120,7 @@ def fixture() -> tuple[RequestRevision, Candidate, tuple[EvidenceObservation, ..
             request_revision_id=revision.id,
             candidate_id=candidate.id,
             requirement_key="recycled_content",
+            evidence_type="manufacturer declaration",
             value=Decimal("85"),
             normalized_unit="percent",
             classification=EvidenceClassification.OBSERVED,

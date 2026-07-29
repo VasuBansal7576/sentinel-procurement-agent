@@ -81,12 +81,14 @@ def observation(
     classification: EvidenceClassification = EvidenceClassification.OBSERVED,
     fresh_until: datetime | None = None,
     confidence: float = 0.9,
+    evidence_type: str | None = None,
 ) -> EvidenceObservation:
     return EvidenceObservation(
         id=UUID(int=10_000 + number),
         request_revision_id=owner.request_revision_id,
         candidate_id=owner.id,
         requirement_key=requirement_key,
+        evidence_type=evidence_type,
         value=value,
         normalized_unit=unit,
         classification=classification,
@@ -539,6 +541,56 @@ def test_ambiguous_requirement_keys_and_duplicate_rank_entries_are_rejected() ->
     )
     with pytest.raises(ValueError, match="candidate IDs must be unique"):
         rank_candidates((evaluation, evaluation))
+
+
+def test_acceptable_evidence_type_is_enforced() -> None:
+    item = candidate(25)
+    required = Requirement(
+        id=UUID(int=2025),
+        key="certification",
+        label="Certification requirement",
+        description="Must be supported by a certification registry",
+        subject_path="attributes.certification",
+        priority=RequirementPriority.MANDATORY,
+        acceptable_evidence=("certification_registry",),
+        criterion=Criterion(
+            type=CriterionType.CERTIFICATION,
+            operator=CriterionOperator.EQUALS,
+            target="ISO 9001",
+        ),
+    )
+
+    rejected = evaluate_requirement(
+        item,
+        required,
+        (
+            observation(
+                29,
+                item,
+                "certification",
+                "ISO 9001",
+                evidence_type="supplier_page",
+            ),
+        ),
+        as_of=AS_OF,
+    )
+    accepted = evaluate_requirement(
+        item,
+        required,
+        (
+            observation(
+                30,
+                item,
+                "certification",
+                "ISO 9001",
+                evidence_type="certification_registry",
+            ),
+        ),
+        as_of=AS_OF,
+    )
+
+    assert rejected.status is EvaluationStatus.INVALID
+    assert accepted.status is EvaluationStatus.SATISFIED
 
 
 @pytest.mark.parametrize(

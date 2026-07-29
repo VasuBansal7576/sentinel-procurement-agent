@@ -204,6 +204,24 @@ def _resolve_evidence(
             selected_observation_id=None,
             reason="no evidence observation was provided",
         )
+    if requirement.acceptable_evidence:
+        acceptable = {value.strip().casefold() for value in requirement.acceptable_evidence}
+        acceptable_observations = tuple(
+            observation
+            for observation in relevant
+            if observation.evidence_type is not None
+            and observation.evidence_type.strip().casefold() in acceptable
+        )
+        if not acceptable_observations:
+            return _ResolvedEvidence(
+                status=EvaluationStatus.INVALID,
+                value=None,
+                normalized_unit=None,
+                observation_ids=observation_ids,
+                selected_observation_id=None,
+                reason="evidence does not match an acceptable evidence type",
+            )
+        relevant = acceptable_observations
 
     has_unresolved_conflict, conflict_resolution = _related_resolution(
         relevant,
