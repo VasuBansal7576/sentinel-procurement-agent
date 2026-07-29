@@ -1,0 +1,266 @@
+{"line":1,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/cwd","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":3,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/1/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":3,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/1/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":3,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/5/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":3,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/5/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":3,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/5/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":3,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/5/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":3,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/5/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":3,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/5/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":3,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/5/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":3,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/5/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":3,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/5/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":3,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/5/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":3,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/5/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":3,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/5/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":6,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/2/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":6,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/2/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":6,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/2/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":6,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/2/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":6,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/2/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":6,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/2/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":6,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/2/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":6,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/2/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/environments/environments/local/cwd","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/environments/filesystem","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/environments/filesystem","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/environments/filesystem","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/environments/filesystem","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/environments/filesystem","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/environments/filesystem","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/environments/filesystem","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/host_skills/body","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/host_skills/body","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/host_skills/body","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/host_skills/body","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/host_skills/body","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/host_skills/body","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/host_skills/body","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/host_skills/body","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/host_skills/body","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/host_skills/body","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/host_skills/body","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":7,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/state/host_skills/body","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/cwd","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/workspace_roots/0","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/sandbox_policy/writable_roots/0","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/permission_profile/file_system/entries/1/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/permission_profile/file_system/entries/4/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/permission_profile/file_system/entries/5/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/permission_profile/file_system/entries/6/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/permission_profile/file_system/entries/7/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/permission_profile/file_system/entries/8/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/permission_profile/file_system/entries/9/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/permission_profile/file_system/entries/10/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/permission_profile/file_system/entries/11/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/file_system_sandbox_policy/entries/1/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/file_system_sandbox_policy/entries/4/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/file_system_sandbox_policy/entries/5/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/file_system_sandbox_policy/entries/6/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/file_system_sandbox_policy/entries/7/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/file_system_sandbox_policy/entries/8/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/file_system_sandbox_policy/entries/9/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/file_system_sandbox_policy/entries/10/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":8,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/file_system_sandbox_policy/entries/11/path/path","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":17,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":18,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":21,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":21,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":21,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":25,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":29,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":30,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output/2/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":30,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output/8/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":30,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output/8/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":30,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output/8/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":30,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output/8/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":33,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":36,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":40,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":40,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":40,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":41,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output/2/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":41,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output/2/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":44,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":44,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":45,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output/1/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":53,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":54,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":57,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":93,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":93,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":93,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":93,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":93,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":93,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":93,"original_sha256":"82a1f724daf6a944b8c0d7f83d6f07daa104b8e24eac04186e2d171ad8e126d2","pointer":"/payload/input","replacement":"[REDACTED_PRIVATE_EMAIL]","rule":"private_email"}
+{"line":94,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":94,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":94,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":94,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":94,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":94,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":94,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1src~1sentinel_api~1persistence~1__init__.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":94,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1src~1sentinel_api~1realtime.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":94,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1pyproject.toml#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":94,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1src~1sentinel_api~1routes~1events.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":94,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1src~1sentinel_api~1persistence~1protocols.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":94,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1src~1sentinel_api~1persistence~1models.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":95,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":95,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":95,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":95,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":95,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":95,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":98,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":98,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":99,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":99,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":99,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1migrations~10001_run_journal_and_outbox.sql#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":99,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1migrations~10002_operator_projections.sql#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":100,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":100,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":103,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":104,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":104,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1migrations~10001_run_journal_and_outbox.sql#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":105,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":109,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":110,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":110,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1src~1sentinel_api~1persistence~1migrations.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":111,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":120,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":121,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":121,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1src~1sentinel_api~1persistence~1postgres.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":122,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":126,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":127,"original_sha256":"9a09ac3910170055d9de7a25ac97f23402295686d31cd3e6f70765fe40872b4d","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":127,"original_sha256":"9a09ac3910170055d9de7a25ac97f23402295686d31cd3e6f70765fe40872b4d","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":130,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":134,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":138,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":139,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":139,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":139,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":142,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":142,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":142,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":146,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":150,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":151,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":151,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1src~1sentinel_api~1persistence~1migrations.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":152,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":155,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":155,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":155,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":159,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":163,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":164,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":164,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1src~1sentinel_api~1persistence~1postgres.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":165,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":168,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":176,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":176,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":176,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":176,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":176,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":176,"original_sha256":"9613efc5cdb60f869c03fd341cfae6d4034490f87585bad1e8d7ae298b8536b2","pointer":"/payload/input","replacement":"[REDACTED_PRIVATE_EMAIL]","rule":"private_email"}
+{"line":176,"original_sha256":"d85768549f2ed3f1f7a8be8dc5428e67ec37a03d6dc2df7ad62800ae90dc4d85","pointer":"/payload/input","replacement":"[REDACTED_PRIVATE_EMAIL]","rule":"private_email"}
+{"line":176,"original_sha256":"d85768549f2ed3f1f7a8be8dc5428e67ec37a03d6dc2df7ad62800ae90dc4d85","pointer":"/payload/input","replacement":"[REDACTED_PRIVATE_EMAIL]","rule":"private_email"}
+{"line":176,"original_sha256":"5ee81907670c66dea303c3c55f474584a45fe7e6b066ce090eb689356d5b3ef2","pointer":"/payload/input","replacement":"[REDACTED_PRIVATE_EMAIL]","rule":"private_email"}
+{"line":176,"original_sha256":"5ee81907670c66dea303c3c55f474584a45fe7e6b066ce090eb689356d5b3ef2","pointer":"/payload/input","replacement":"[REDACTED_PRIVATE_EMAIL]","rule":"private_email"}
+{"line":177,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":177,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":177,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":177,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":177,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":177,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1tests~1persistence~1test_migrations.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":177,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1tests~1persistence~1test_postgres_event_store.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":177,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1tests~1test_event_routes.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":177,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1src~1sentinel_api~1persistence~1postgres.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":177,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1tests~1test_realtime.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":178,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":178,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":178,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":178,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":178,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":181,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":181,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":181,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":185,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":189,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":190,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":193,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":194,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":202,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":202,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":202,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":211,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":211,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":211,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":211,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":211,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":211,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":212,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":212,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":212,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":212,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":212,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":212,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":212,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1migrations~1README.md#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":212,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1src~1sentinel_api~1routes~1events.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":212,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1src~1sentinel_api~1persistence~1runtime.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":212,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1tests~1test_event_routes.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":212,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1src~1sentinel_api~1persistence~1__init__.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":212,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1tests~1persistence~1test_postgres_event_store.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":213,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":213,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":213,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":213,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":213,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":213,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":218,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":218,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":218,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":222,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":229,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":230,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":230,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":233,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":237,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":238,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":241,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":250,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":250,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":250,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":254,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":259,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":268,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":272,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":273,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/stdout","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":273,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/changes/$USER_HOME~1.codex~1worktrees~1d5c9~1X ARC~1apps~1api~1tests~1persistence~1test_migrations.py#key","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":274,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/output","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":277,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":281,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":285,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/arguments","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":289,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":289,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/input","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":310,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/message","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":310,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/message","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":310,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/message","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":310,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/message","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":310,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/message","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":310,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/message","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":311,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/0/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":311,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/0/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":311,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/0/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":311,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/0/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":311,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/0/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":311,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/content/0/text","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":313,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/last_agent_message","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":313,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/last_agent_message","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":313,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/last_agent_message","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":313,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/last_agent_message","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":313,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/last_agent_message","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":313,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/last_agent_message","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":314,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/cwd","replacement":"$USER_HOME","rule":"absolute_personal_path"}
+{"line":315,"original_sha256":"e600b1a0cd7c461f392109384d839c2d5aba1766d516f758f0fa89bbac19d8cb","pointer":"/payload/cwd","replacement":"$USER_HOME","rule":"absolute_personal_path"}

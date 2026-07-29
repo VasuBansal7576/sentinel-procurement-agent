@@ -1,5 +1,7 @@
 """Walking-skeleton run commands, queries, event delivery, and artifacts."""
 
+from hashlib import sha256
+from pathlib import PurePath
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Request, Response, status
@@ -68,26 +70,41 @@ async def download_artifact(run_id: UUID, artifact_id: UUID, request: Request) -
         except KeyError:
             pass
         else:
+            filename = _safe_download_filename(artifact.filename)
             return Response(
                 content=artifact.content,
                 media_type=artifact.media_type,
                 headers={
-                    "Content-Disposition": (f'attachment; filename="{artifact.filename}"'),
+                    "Content-Disposition": f'attachment; filename="{filename}"',
+                    "Cache-Control": "private, no-store",
                     "X-Content-Type-Options": "nosniff",
                     "X-Content-SHA256": artifact.content_sha256,
+                    "Content-Security-Policy": "default-src 'none'; sandbox",
                 },
             )
     artifact = _run_store(request).artifact(run_id, artifact_id)
     if artifact is None:
         raise HTTPException(status_code=404, detail="Artifact not found")
+    filename = _safe_download_filename(artifact.summary.filename)
     return Response(
         content=artifact.content,
         media_type=artifact.summary.media_type,
         headers={
-            "Content-Disposition": f'attachment; filename="{artifact.summary.filename}"',
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "private, no-store",
             "X-Content-Type-Options": "nosniff",
+            "X-Content-SHA256": sha256(artifact.content).hexdigest(),
+            "Content-Security-Policy": "default-src 'none'; sandbox",
         },
     )
+
+
+def _safe_download_filename(filename: str) -> str:
+    """Keep Content-Disposition inert even if stored metadata is malformed."""
+
+    leaf = PurePath(filename.replace("\\", "/")).name
+    cleaned = "".join(character for character in leaf if character.isalnum() or character in "._-")
+    return cleaned[:120] or "sentinel-artifact"
 
 
 def _run_store(request: Request) -> InMemoryRunStore:

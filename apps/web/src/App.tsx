@@ -35,6 +35,7 @@ export function App({ gateway }: AppProps) {
   const [error, setError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [request, setRequest] = useState<CreateRunInput>(initialRequest);
+  const [announcement, setAnnouncement] = useState("");
 
   const applyRun = useCallback((nextRun: OperatorRun) => {
     setRun(nextRun);
@@ -112,7 +113,11 @@ export function App({ gateway }: AppProps) {
     setIsMutating(true);
     setError(null);
     try {
-      applyRun(await operation());
+      const updated = await operation();
+      applyRun(updated);
+      setAnnouncement(
+        `Operator command acknowledged. Run is ${updated.session.status}.`,
+      );
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -271,6 +276,9 @@ export function App({ gateway }: AppProps) {
       </aside>
 
       <main id="run-workspace" className="run-workspace" tabIndex={-1}>
+        <p className="sr-only" role="status" aria-live="polite">
+          {announcement}
+        </p>
         {error ? (
           <div className="load-failure" role="alert">
             <div>
@@ -298,6 +306,10 @@ export function App({ gateway }: AppProps) {
                 </div>
                 <h1>{run.session.title}</h1>
                 <p>{run.summary}</p>
+                <div className="runtime-disclosure" role="note">
+                  <strong>Execution boundary</strong>
+                  <span>{run.runtimeDisclosure}</span>
+                </div>
               </div>
               <div className="run-controls">
                 <span

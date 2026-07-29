@@ -51,11 +51,16 @@ class IntegrationService:
         records: IntegrationRepository,
         runtime: RuntimeLauncher,
         proposal_broker: ApprovalBrokerAdapter,
+        runtime_disclosure: str = (
+            "Deterministic local research and fake email. "
+            "Approval records permission only; it never sends."
+        ),
     ) -> None:
         self.event_store = event_store
         self.records = records
         self.runtime = runtime
         self.proposal_broker = proposal_broker
+        self.runtime_disclosure = runtime_disclosure
 
     async def create_run(self, request: CreateRunRequest) -> dict[str, object]:
         case, revision, runtime_input, record = normalize_intake(request)
@@ -104,12 +109,14 @@ class IntegrationService:
         if summary is None or summary.parent_run_id is not None:
             raise KeyError("run not found")
         records = await self.records.list(run_id)
-        return await operator_run_view(
+        projection = await operator_run_view(
             event_store=self.event_store,
             records=records,
             summary=summary,
             proposal_broker=self.proposal_broker,
         )
+        projection["runtimeDisclosure"] = self.runtime_disclosure
+        return projection
 
     async def get_work_tree(self, run_id: UUID) -> list[dict[str, object]]:
         projection = await self.get_run(run_id)

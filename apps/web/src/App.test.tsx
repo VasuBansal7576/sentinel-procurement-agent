@@ -26,7 +26,12 @@ describe("structural operator workbench", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("14 of 21 work items")).toBeInTheDocument();
     expect(
-      screen.getByText("Typed projection fixture · PR 7/8 adapter seam"),
+      screen.getByText(
+        "Fixture projection · deterministic local data · no external effects",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/FIXTURE MODE: typed local projection/),
     ).toBeInTheDocument();
 
     fireEvent.click(
@@ -75,7 +80,11 @@ describe("structural operator workbench", () => {
     await waitFor(() =>
       expect(screen.getAllByText("Recovering").length).toBeGreaterThan(0),
     );
-    expect(screen.getByRole("status")).toHaveTextContent("recovering");
+    expect(
+      screen
+        .getAllByRole("status")
+        .some((status) => status.textContent?.includes("recovering")),
+    ).toBe(true);
     expect(screen.getByText(/0 blockers/)).toBeInTheDocument();
   });
 
@@ -160,16 +169,49 @@ describe("structural operator workbench", () => {
     );
 
     expect(
-      await screen.findByRole("button", { name: "Approve exact v4" }),
+      await screen.findByRole("button", {
+        name: "Approve exact v4 — no send",
+      }),
     ).toBeInTheDocument();
     expect(screen.getByText("sha256:fixture-v4")).toBeInTheDocument();
     expect(screen.getAllByText("recommendation-r2.pdf")).toHaveLength(2);
 
-    fireEvent.click(screen.getByRole("button", { name: "Approve exact v4" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Approve exact v4 — no send" }),
+    );
     expect(
-      await screen.findByText("Approved by Current operator"),
+      await screen.findByText(/Approved by Current operator.*No dispatch occurred/),
     ).toBeInTheDocument();
     expect(screen.getByText("approved")).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Edit and revoke approval" }),
+    );
+    fireEvent.change(screen.getByLabelText("Subject"), {
+      target: { value: "RFQ — changed after approval" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Save as new version" }),
+    );
+    expect(
+      await screen.findByRole("button", {
+        name: "Approve exact v5 — no send",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("approved")).not.toBeInTheDocument();
+  });
+
+  it("supports keyboard navigation across proposal preview and diff tabs", async () => {
+    render(<App gateway={createFixtureGateway()} />);
+    const preview = await screen.findByRole("tab", { name: "Exact preview" });
+    preview.focus();
+
+    fireEvent.keyDown(preview, { key: "ArrowRight" });
+
+    const diff = screen.getByRole("tab", { name: "v2 → v3" });
+    expect(diff).toHaveFocus();
+    expect(diff).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText(/Editing invalidated/)).toBeInTheDocument();
   });
 
   it("keeps the walking-skeleton create path behind the gateway boundary", async () => {

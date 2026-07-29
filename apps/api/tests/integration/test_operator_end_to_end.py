@@ -76,6 +76,7 @@ def test_unrelated_categories_share_the_real_pipeline(intake: dict[str, str]) ->
         assert run["session"]["revision"] == 1
         assert len(run["requirements"]) == 3
         assert len(run["candidates"]) == 3
+        assert {candidate["evidenceCoverage"] for candidate in run["candidates"]} == {"33%"}
         assert len(run["evidence"]) == 9
         assert len(run["artifacts"]) == 4
         assert run["proposal"]["status"] == "pending_approval"
@@ -188,6 +189,8 @@ def test_operator_commands_proposals_and_run_scoped_downloads() -> None:
         artifact = created["artifacts"][0]
         download = client.get(artifact["downloadUrl"])
         assert download.status_code == 200
+        assert download.headers["cache-control"] == "private, no-store"
+        assert download.headers["content-security-policy"] == "default-src 'none'; sandbox"
         assert download.headers["x-content-type-options"] == "nosniff"
         assert download.headers["x-content-sha256"] == artifact["digest"].removeprefix("sha256:")
         wrong_run = client.get(f"/api/runs/{uuid4()}/artifacts/{artifact['id']}")

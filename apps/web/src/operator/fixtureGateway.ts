@@ -26,6 +26,8 @@ function activeFixture(): OperatorRun {
     },
     summary:
       "Comparing serviceable 300 dpi printers after the operator added a five-year parts requirement.",
+    runtimeDisclosure:
+      "FIXTURE MODE: typed local projection, deterministic evidence, and fake email. Approval never sends.",
     activePhase: "Supplier verification",
     policyLabel: "Standard sourcing · rev 4",
     elapsedLabel: "38m active",
@@ -532,6 +534,8 @@ function runViewAdapter(run: RunView): OperatorRun {
       revision: 1,
     },
     summary: "Request normalized by the walking-skeleton API.",
+    runtimeDisclosure:
+      "FIXTURE MODE: walking-skeleton projection and fake external effects.",
     activePhase: run.current_phase,
     policyLabel: "Standard sourcing · rev 1",
     elapsedLabel: run.completed_at ? "complete" : "new",
@@ -608,7 +612,7 @@ export function createFixtureGateway(): OperatorWorkbenchGateway {
   }
 
   return {
-    sourceLabel: "Typed projection fixture · PR 7/8 adapter seam",
+    sourceLabel: "Fixture projection · deterministic local data · no external effects",
     isFixture: true,
     async listSessions(): Promise<SessionSummary[]> {
       return Array.from(runs.values()).map((run) => clone(run.session));

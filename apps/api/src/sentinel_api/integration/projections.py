@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from collections.abc import Sequence
 from datetime import UTC, datetime
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import cast
 from uuid import UUID
 
@@ -270,7 +271,7 @@ def _candidates(
                     ),
                     "Unknown",
                 ),
-                "evidenceCoverage": f"{evaluation.get('coverage', '0')}%",
+                "evidenceCoverage": _percentage(evaluation.get("coverage", "0")),
                 "mandatoryStatus": (
                     "pass"
                     if evaluation.get("eligible") is True
@@ -282,6 +283,14 @@ def _candidates(
             }
         )
     return result
+
+
+def _percentage(value: object) -> str:
+    try:
+        rounded = Decimal(str(value)).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    except (InvalidOperation, ValueError):
+        rounded = Decimal(0)
+    return f"{rounded}%"
 
 
 def _evidence_state(status: str) -> str:
