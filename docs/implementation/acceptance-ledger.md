@@ -13,7 +13,7 @@ It is updated by the PR that introduces each capability.
 | Genuine nested subagent work | 7 | Child-workflow integration tests and run tree | Planned |
 | Pause, resume, redirect, queued instruction | 7, 9 | Workflow and operator-journey tests | Planned |
 | Selective reuse after revision | 2, 7 | Direct and transitive invalidation unit tests; runtime integration pending | In progress |
-| Claim-level evidence and conflicts | 5 | Strict provenance/conflict contracts implemented; behavior tests pending | In progress |
+| Claim-level evidence and conflicts | 5 | Immutable snapshots, exact-span hashes, taint, freshness, conflicts, isolation, and adversarial boundary tests implemented; live adapters pending | In progress |
 | Exact editable approval | 8, 9 | Proposal/permit/action contracts implemented; broker tests pending | In progress |
 | Durable close/reopen and SSE replay | 4, 7, 9 | PostgreSQL journal, projections, outbox, Last-Event-ID replay, and application-lifespan tests implemented; workflow/UI journeys pending | In progress |
 | Failure recovery | 7, 12 | Worker/browser termination test evidence | Planned |
