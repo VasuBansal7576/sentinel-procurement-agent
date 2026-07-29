@@ -27,6 +27,15 @@ def test_redaction_is_narrow_and_records_opaque_original_hashes() -> None:
     assert all(len(change[2]) == 64 for change in changes)
 
 
+def test_redaction_does_not_treat_json_escaped_decorators_as_email() -> None:
+    value = r"\n@pytest.mark.asyncio\n@router.get"
+
+    redacted, changes = redact_string(value)
+
+    assert redacted == value
+    assert changes == []
+
+
 def test_export_and_verify_append_only_native_jsonl(
     tmp_path: Path,
     monkeypatch,

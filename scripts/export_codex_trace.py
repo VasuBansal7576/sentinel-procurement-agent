@@ -15,7 +15,9 @@ from typing import Any
 
 SCHEMA_VERSION = 1
 PERSONAL_PATH = re.compile(r"/Users/[A-Za-z0-9._-]+")
-EMAIL = re.compile(r"(?<![\w.+-])[\w.+-]{2,}@([\w.-]+\.[A-Za-z]{2,})(?![\w.-])")
+# The extra backslash guard prevents JSON escape sequences such as
+# ``\n@pytest.mark.asyncio`` from being mistaken for email addresses.
+EMAIL = re.compile(r"(?<![\\\w.+-])[\w.+-]{2,}@([\w.-]+\.[A-Za-z]{2,})(?![\w.-])")
 SAFE_EMAIL_DOMAINS = {"example.com", "example.org", "example.test"}
 CREDENTIAL_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("openai_key", re.compile(r"\bsk-(?:proj-|svcacct-)?[A-Za-z0-9_-]{16,}\b")),
