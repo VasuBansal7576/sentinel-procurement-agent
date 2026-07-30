@@ -6,7 +6,14 @@ from sentinel_api.integration.demo import DemoProfile
 
 
 def test_settings_default_to_credential_free_providers() -> None:
-    settings = Settings(_env_file=None)
+    settings = Settings(
+        _env_file=None,
+        model_provider="fake",
+        email_provider="fake",
+        controlled_recipient=None,
+        credential_gate="fake-only",
+        resend_api_key=None,
+    )
 
     assert settings.model_provider == "fake"
     assert settings.email_provider == "fake"
@@ -43,12 +50,19 @@ def test_demo_controls_are_explicit_and_impossible_in_production() -> None:
 
 def test_live_providers_fail_closed_before_the_final_credential_gate() -> None:
     with pytest.raises(ValidationError, match="post-acceptance credential gate"):
-        Settings(_env_file=None, email_provider="resend")
+        Settings(
+            _env_file=None,
+            email_provider="resend",
+            controlled_recipient=None,
+            resend_api_key=None,
+        )
     with pytest.raises(ValidationError, match="controlled recipient"):
         Settings(
             _env_file=None,
             email_provider="resend",
             credential_gate="live-approved",
+            controlled_recipient=None,
+            resend_api_key=None,
         )
 
     with pytest.raises(ValidationError, match="RESEND_API_KEY"):
@@ -57,6 +71,7 @@ def test_live_providers_fail_closed_before_the_final_credential_gate() -> None:
             email_provider="resend",
             credential_gate="live-approved",
             controlled_recipient="owner@example.test",
+            resend_api_key=None,
         )
 
     settings = Settings(

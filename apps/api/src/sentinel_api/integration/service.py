@@ -426,16 +426,10 @@ class IntegrationService:
             summary.status in {"completed", "completed_with_failures", "failed"}
             and body.autonomy_mode is not AutonomyMode.RESEARCH_ONLY
         ):
-            raise ValueError(
-                "completed runs can only tighten autonomy to research only"
-            )
+            raise ValueError("completed runs can only tighten autonomy to research only")
         next_version = (
             max(
-                (
-                    record.version
-                    for record in records
-                    if record.record_kind == "autonomy_mode"
-                ),
+                (record.version for record in records if record.record_kind == "autonomy_mode"),
                 default=0,
             )
             + 1
@@ -461,9 +455,7 @@ class IntegrationService:
             EventDraft(
                 event_type="operator.autonomy_set",
                 status="completed",
-                summary=(
-                    f"Autonomy changed to {autonomy_label(body.autonomy_mode)}"
-                ),
+                summary=(f"Autonomy changed to {autonomy_label(body.autonomy_mode)}"),
                 payload={
                     "autonomy_mode": body.autonomy_mode.value,
                     "previous": current.value,
@@ -483,9 +475,7 @@ class IntegrationService:
     ) -> dict[str, object]:
         records = await self.records.list(run_id)
         if resolve_autonomy(records) is AutonomyMode.RESEARCH_ONLY:
-            raise ValueError(
-                "research only autonomy disables external RFQ proposals"
-            )
+            raise ValueError("research only autonomy disables external RFQ proposals")
         proposal, version = await self._proposal(run_id)
         updated = await await_result(
             self.proposal_broker.edit_proposal(
@@ -541,9 +531,7 @@ class IntegrationService:
         records = await self.records.list(run_id)
         mode = resolve_autonomy(records)
         if mode is AutonomyMode.RESEARCH_ONLY:
-            raise ValueError(
-                "research only autonomy disables external RFQ approval"
-            )
+            raise ValueError("research only autonomy disables external RFQ approval")
         proposal, version = await self._proposal(run_id)
         decisions = [
             record
@@ -685,9 +673,7 @@ class IntegrationService:
             EventDraft(
                 event_type="email.execution_completed",
                 status=str(result.state.value),
-                summary=(
-                    f"Protected email execution finished as {result.state.value}"
-                ),
+                summary=(f"Protected email execution finished as {result.state.value}"),
                 payload={
                     "proposal_id": str(proposal.id),
                     "version": version.version,

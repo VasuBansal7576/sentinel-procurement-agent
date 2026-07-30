@@ -85,9 +85,7 @@ async def operator_run_view(
     elif isinstance(proposal, dict):
         proposal = {
             **proposal,
-            "policyDecision": (
-                f"{autonomy_policy_decision(mode)}; fake provider only"
-            ),
+            "policyDecision": (f"{autonomy_policy_decision(mode)}; fake provider only"),
             "autonomyMode": mode.value,
         }
     return {
@@ -143,11 +141,7 @@ async def operator_run_view(
 
 
 def resolve_autonomy(records: Sequence[IntegrationRecord]) -> AutonomyMode:
-    settings = [
-        record
-        for record in records
-        if record.record_kind == "autonomy_mode"
-    ]
+    settings = [record for record in records if record.record_kind == "autonomy_mode"]
     if settings:
         latest = max(settings, key=lambda record: (record.version, record.updated_at))
         raw = latest.payload.get("autonomy_mode")

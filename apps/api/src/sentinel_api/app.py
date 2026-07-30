@@ -54,8 +54,7 @@ def _build_email_boundary(
         sender=settings.email_sender,
         controlled_recipient=_controlled_recipient(settings),
         live_dispatch_enabled=(
-            settings.email_provider == "resend"
-            and settings.credential_gate == "live-approved"
+            settings.email_provider == "resend" and settings.credential_gate == "live-approved"
         ),
     )
 
