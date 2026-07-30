@@ -32,12 +32,18 @@ export interface RunView {
   artifacts: ArtifactSummary[];
 }
 
+export type AutonomyMode =
+  | "research_only"
+  | "ask_before_external"
+  | "approve_and_hold";
+
 export interface CreateRunInput {
   title: string;
   item_name: string;
   description: string;
   quantity: string;
   unit: string;
+  autonomy_mode: AutonomyMode;
 }
 
 export async function createRun(input: CreateRunInput): Promise<RunView> {

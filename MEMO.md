@@ -39,6 +39,10 @@ The single integrated child is intentionally broad; the runtime supports
 multiple concurrent work items, but expanding the demo agent would spend the
 time budget on engine breadth instead of operator control.
 
+Autonomy is operator-set in plain language: **Research only**, **Ask before
+external contact** (default), and **Approve and hold**. Research only suppresses
+the RFQ path. The other modes require exact human approval and never auto-send.
+
 ## Hardest rendering decision
 
 The hardest choice was how much execution detail to show. I rejected a raw
@@ -73,6 +77,7 @@ exist.
 | Approval pending | The run and evidence remain readable. Exact recipient, subject, body, attachments, digests, and version diff are inline. |
 | Edited after approval | Saving creates a new version, returns status to pending approval, and makes the earlier permit unusable. |
 | Approval/rejection | Approval receipt explicitly says no dispatch occurred; rejection authorizes nothing. Execution is a separate fake-only gate. |
+| Research-only autonomy | RFQ proposal is suppressed; artifacts and evidence remain. Operator may tighten a finished run to research only. |
 | Artifact unavailable/wrong run | A clear 404 rather than cross-run disclosure; valid downloads are no-store attachments with digest and nosniff headers. |
 | API unavailable/empty/loading | Persistent alert with retry, explicit empty-session invitation, or restoration status; an acknowledged API conflict never silently switches to fixture data. |
 

@@ -39,10 +39,22 @@ suppliers, evidence, and approval risk but does not know Temporal, tool calls, o
 terminal commands. The workbench therefore uses an operations layout:
 
 - session history and durable source disclosure on the left;
+- a persistent truth boundary that states synthetic local suppliers and no-send approval;
 - nested phases, subagents, work, and tools as a collapsible work tree;
 - requirements, comparison, and claim-level evidence in the decision canvas;
 - artifacts and exact protected-action preview in the action rail;
-- pause/resume and queue/redirect controls in operator language.
+- pause/resume, queue/redirect, and plain-language autonomy controls.
+
+### Autonomy modes (non-engineer language)
+
+| Mode | Behavior |
+|---|---|
+| Research only | Comparison and files only; RFQ / external contact path suppressed |
+| Ask before external contact (default) | Full research path; exact approval required; approval never sends |
+| Approve and hold | Exact approval allowed; dispatch remains a separate gated step |
+
+Autonomy is chosen at intake and can be changed on an active or completed run
+(completed runs may only tighten to research only).
 
 Blocked, failed, recovering, approval-pending, empty, loading, and API-error
 states are designed states. The live run is restored from its durable ID after

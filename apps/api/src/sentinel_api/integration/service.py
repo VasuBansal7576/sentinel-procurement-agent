@@ -7,17 +7,20 @@ from uuid import UUID
 
 from sentinel_api.application.walking_skeleton import CreateRunRequest
 from sentinel_api.domain import (
+    AutonomyMode,
     OrganizationPolicy,
     Proposal,
     ProposalVersion,
     RequestPolicyOverlay,
     RequestRevision,
+    autonomy_label,
     resolve_policy,
 )
 from sentinel_api.domain.policy import ProtectedAction
 from sentinel_api.integration.brokers import ApprovalBrokerAdapter, await_result
 from sentinel_api.integration.models import (
     ArtifactDownload,
+    AutonomyCommandRequest,
     CommandRequest,
     IntegrationRecord,
     MessageCommandRequest,
@@ -26,7 +29,12 @@ from sentinel_api.integration.models import (
     RedirectCommandRequest,
 )
 from sentinel_api.integration.planner import deterministic_id, normalize_intake
-from sentinel_api.integration.projections import operator_run_view, session_view
+from sentinel_api.integration.projections import (
+    HONESTY_BANNER,
+    operator_run_view,
+    resolve_autonomy,
+    session_view,
+)
 from sentinel_api.integration.repository import IntegrationRepository
 from sentinel_api.integration.runtime import RuntimeLauncher
 from sentinel_api.persistence.models import EventDraft, NewRun
@@ -55,15 +63,33 @@ class IntegrationService:
             "Deterministic local research and fake email. "
             "Approval records permission only; it never sends."
         ),
+        honesty_banner: str = HONESTY_BANNER,
     ) -> None:
         self.event_store = event_store
         self.records = records
         self.runtime = runtime
         self.proposal_broker = proposal_broker
         self.runtime_disclosure = runtime_disclosure
+        self.honesty_banner = honesty_banner
 
     async def create_run(self, request: CreateRunRequest) -> dict[str, object]:
         case, revision, runtime_input, record = normalize_intake(request)
+        record = IntegrationRecord(
+            run_id=record.run_id,
+            record_ref=record.record_ref,
+            record_kind=record.record_kind,
+            payload={
+                **record.payload,
+                "autonomy_mode": request.autonomy_mode.value,
+            },
+            content=record.content,
+            filename=record.filename,
+            media_type=record.media_type,
+            content_sha256=record.content_sha256,
+            version=record.version,
+            created_at=record.created_at,
+            updated_at=record.updated_at,
+        )
         await self.event_store.create_run(
             NewRun(
                 run_id=record.run_id,
@@ -76,6 +102,19 @@ class IntegrationService:
             )
         )
         await self.records.put(record)
+        await self.records.put(
+            IntegrationRecord(
+                run_id=record.run_id,
+                record_ref=deterministic_id(record.run_id, "autonomy:1"),
+                record_kind="autonomy_mode",
+                payload={
+                    "autonomy_mode": request.autonomy_mode.value,
+                    "label": autonomy_label(request.autonomy_mode),
+                    "source": "intake",
+                },
+                version=1,
+            )
+        )
         await self.event_store.append_event(
             record.run_id,
             EventDraft(
@@ -86,9 +125,24 @@ class IntegrationService:
                     "request_ref": str(record.record_ref),
                     "request_revision_id": str(revision.id),
                     "request_revision_number": 1,
+                    "autonomy_mode": request.autonomy_mode.value,
                 },
                 payload_ref=f"record://{record.record_ref}",
                 idempotency_key="request.normalized:1",
+            ),
+        )
+        await self.event_store.append_event(
+            record.run_id,
+            EventDraft(
+                event_type="operator.autonomy_set",
+                status="completed",
+                summary=f"Autonomy set to {autonomy_label(request.autonomy_mode)}",
+                payload={
+                    "autonomy_mode": request.autonomy_mode.value,
+                    "source": "intake",
+                },
+                actor_id="operator",
+                idempotency_key="autonomy:intake:1",
             ),
         )
         await self.runtime.start(runtime_input)
@@ -116,6 +170,7 @@ class IntegrationService:
             proposal_broker=self.proposal_broker,
         )
         projection["runtimeDisclosure"] = self.runtime_disclosure
+        projection["honestyBanner"] = self.honesty_banner
         return projection
 
     async def get_work_tree(self, run_id: UUID) -> list[dict[str, object]]:
@@ -331,11 +386,84 @@ class IntegrationService:
         )
         return await self.get_run(run_id)
 
+    async def set_autonomy(
+        self,
+        run_id: UUID,
+        body: AutonomyCommandRequest,
+    ) -> dict[str, object]:
+        summary = await self.event_store.get_run(run_id)
+        if summary is None or summary.parent_run_id is not None:
+            raise KeyError("run not found")
+        records = await self.records.list(run_id)
+        current = resolve_autonomy(records)
+        if current is body.autonomy_mode:
+            return await self.get_run(run_id)
+        # Completed runs may only tighten to research only so residual
+        # approval UI can be disabled without reopening external authority.
+        if (
+            summary.status in {"completed", "completed_with_failures", "failed"}
+            and body.autonomy_mode is not AutonomyMode.RESEARCH_ONLY
+        ):
+            raise ValueError(
+                "completed runs can only tighten autonomy to research only"
+            )
+        next_version = (
+            max(
+                (
+                    record.version
+                    for record in records
+                    if record.record_kind == "autonomy_mode"
+                ),
+                default=0,
+            )
+            + 1
+        )
+        await self.records.put(
+            IntegrationRecord(
+                run_id=run_id,
+                record_ref=deterministic_id(run_id, f"autonomy:{next_version}"),
+                record_kind="autonomy_mode",
+                payload={
+                    "autonomy_mode": body.autonomy_mode.value,
+                    "label": autonomy_label(body.autonomy_mode),
+                    "source": "operator",
+                    "reason": body.reason,
+                    "command_id": str(body.command_id),
+                    "previous": current.value,
+                },
+                version=next_version,
+            )
+        )
+        await self.event_store.append_event(
+            run_id,
+            EventDraft(
+                event_type="operator.autonomy_set",
+                status="completed",
+                summary=(
+                    f"Autonomy changed to {autonomy_label(body.autonomy_mode)}"
+                ),
+                payload={
+                    "autonomy_mode": body.autonomy_mode.value,
+                    "previous": current.value,
+                    "command_id": str(body.command_id),
+                    "reason": body.reason,
+                },
+                actor_id="operator",
+                idempotency_key=f"command:{body.command_id}:autonomy",
+            ),
+        )
+        return await self.get_run(run_id)
+
     async def edit_proposal(
         self,
         run_id: UUID,
         body: ProposalEditRequest,
     ) -> dict[str, object]:
+        records = await self.records.list(run_id)
+        if resolve_autonomy(records) is AutonomyMode.RESEARCH_ONLY:
+            raise ValueError(
+                "research only autonomy disables external RFQ proposals"
+            )
         proposal, version = await self._proposal(run_id)
         updated = await await_result(
             self.proposal_broker.edit_proposal(
@@ -388,6 +516,12 @@ class IntegrationService:
         run_id: UUID,
         body: ProposalDecisionRequest,
     ) -> dict[str, object]:
+        records = await self.records.list(run_id)
+        mode = resolve_autonomy(records)
+        if mode is AutonomyMode.RESEARCH_ONLY:
+            raise ValueError(
+                "research only autonomy disables external RFQ approval"
+            )
         proposal, version = await self._proposal(run_id)
         decisions = [
             record

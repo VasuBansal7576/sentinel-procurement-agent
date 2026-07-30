@@ -1,6 +1,6 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 
-import type { CreateRunInput } from "./api";
+import type { AutonomyMode, CreateRunInput } from "./api";
 import { ActionRail } from "./operator/ActionRail";
 import { CommandComposer } from "./operator/CommandComposer";
 import { EvidenceCanvas } from "./operator/EvidenceCanvas";
@@ -10,6 +10,7 @@ import type {
   OperatorWorkbenchGateway,
   SessionSummary,
 } from "./operator/types";
+import { DEFAULT_AUTONOMY_OPTIONS } from "./operator/types";
 import { WorkTree } from "./operator/WorkTree";
 
 const ACTIVE_RUN_STORAGE_KEY = "sentinel.active-run-id";
@@ -20,6 +21,7 @@ const initialRequest: CreateRunInput = {
   description: "",
   quantity: "1",
   unit: "each",
+  autonomy_mode: "ask_before_external",
 };
 
 interface AppProps {
@@ -236,6 +238,29 @@ export function App({ gateway }: AppProps) {
                 />
               </label>
             </div>
+            <fieldset className="autonomy-fieldset">
+              <legend>How much autonomy?</legend>
+              {DEFAULT_AUTONOMY_OPTIONS.map((option) => (
+                <label key={option.value} className="autonomy-option">
+                  <input
+                    type="radio"
+                    name="intake-autonomy"
+                    value={option.value}
+                    checked={request.autonomy_mode === option.value}
+                    onChange={() =>
+                      setRequest({
+                        ...request,
+                        autonomy_mode: option.value,
+                      })
+                    }
+                  />
+                  <span>
+                    <strong>{option.label}</strong>
+                    <small>{option.description}</small>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
             <button type="submit" disabled={isMutating}>
               {isMutating ? "Starting…" : "Start run"}
             </button>
@@ -297,6 +322,10 @@ export function App({ gateway }: AppProps) {
           </div>
         ) : run ? (
           <>
+            <div className="honesty-banner" role="status">
+              <strong>Truth boundary</strong>
+              <span>{run.honestyBanner}</span>
+            </div>
             <header className="run-header">
               <div className="run-title">
                 <div className="run-breadcrumb">
@@ -310,6 +339,12 @@ export function App({ gateway }: AppProps) {
                   <strong>Execution boundary</strong>
                   <span>{run.runtimeDisclosure}</span>
                 </div>
+                {run.sourceBoundary ? (
+                  <div className="runtime-disclosure source-boundary" role="note">
+                    <strong>Source boundary</strong>
+                    <span>{run.sourceBoundary}</span>
+                  </div>
+                ) : null}
               </div>
               <div className="run-controls">
                 <span
@@ -340,6 +375,59 @@ export function App({ gateway }: AppProps) {
                   {controlAction === "pause" ? "Pause run" : "Resume run"}
                 </button>
               </div>
+              <section
+                className="autonomy-panel"
+                aria-labelledby="autonomy-heading"
+              >
+                <div className="autonomy-panel-copy">
+                  <p className="section-index" id="autonomy-heading">
+                    Operator autonomy
+                  </p>
+                  <p>
+                    Set how much this run may do on its own, in plain language.
+                    External contact never auto-sends.
+                  </p>
+                </div>
+                <div
+                  className="autonomy-mode-list"
+                  role="radiogroup"
+                  aria-label="How much autonomy this run may use"
+                >
+                  {(run.autonomyOptions.length
+                    ? run.autonomyOptions
+                    : DEFAULT_AUTONOMY_OPTIONS
+                  ).map((option) => (
+                    <label
+                      key={option.value}
+                      className={
+                        run.autonomyMode === option.value
+                          ? "autonomy-chip selected"
+                          : "autonomy-chip"
+                      }
+                    >
+                      <input
+                        type="radio"
+                        name={`run-autonomy-${run.session.id}`}
+                        value={option.value}
+                        checked={run.autonomyMode === option.value}
+                        disabled={isMutating}
+                        onChange={() =>
+                          void mutate(() =>
+                            workbenchGateway.setAutonomy(
+                              run.session.id,
+                              option.value as AutonomyMode,
+                            ),
+                          )
+                        }
+                      />
+                      <span>
+                        <strong>{option.label}</strong>
+                        <small>{option.description}</small>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </section>
               <dl className="run-facts">
                 <div>
                   <dt>Active phase</dt>
@@ -348,6 +436,10 @@ export function App({ gateway }: AppProps) {
                 <div>
                   <dt>Request</dt>
                   <dd>Revision {run.session.revision}</dd>
+                </div>
+                <div>
+                  <dt>Autonomy</dt>
+                  <dd>{run.autonomyLabel}</dd>
                 </div>
                 <div>
                   <dt>Policy</dt>

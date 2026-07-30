@@ -1,6 +1,7 @@
 import type { CreateRunInput } from "../api";
 import { createFixtureGateway } from "./fixtureGateway";
 import type {
+  AutonomyMode,
   OperatorRun,
   OperatorWorkbenchGateway,
   ProposalEdit,
@@ -23,6 +24,7 @@ const projectionEventTypes = [
   "subagent.failed",
   "tool.completed",
   "operator.message_applied",
+  "operator.autonomy_set",
   "proposal.edited",
   "proposal.approved",
   "proposal.rejected",
@@ -105,6 +107,16 @@ export function createHttpGateway(): OperatorWorkbenchGateway {
             action === "pause"
               ? "Operator paused the run"
               : "Operator resumed the run",
+        }),
+      );
+    },
+    setAutonomy(runId, mode: AutonomyMode) {
+      return requestJson<OperatorRun>(
+        `/api/operator/runs/${runId}/autonomy`,
+        jsonRequest("POST", {
+          command_id: commandId(),
+          autonomy_mode: mode,
+          reason: "Operator updated how much autonomy this run may use",
         }),
       );
     },
@@ -208,6 +220,11 @@ export function createApiFirstGateway(
     controlRun(runId, action) {
       return withAvailabilityFallback((gateway) =>
         gateway.controlRun(runId, action),
+      );
+    },
+    setAutonomy(runId, mode) {
+      return withAvailabilityFallback((gateway) =>
+        gateway.setAutonomy(runId, mode),
       );
     },
     retryWork(runId, workId) {

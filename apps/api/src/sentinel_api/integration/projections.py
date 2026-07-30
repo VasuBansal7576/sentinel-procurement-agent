@@ -9,7 +9,12 @@ from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import cast
 from uuid import UUID
 
-from sentinel_api.domain import ProposalVersion
+from sentinel_api.domain import (
+    AutonomyMode,
+    ProposalVersion,
+    autonomy_label,
+    autonomy_policy_decision,
+)
 from sentinel_api.integration.brokers import ApprovalBrokerAdapter, await_result
 from sentinel_api.integration.models import IntegrationRecord
 from sentinel_api.persistence.models import (
@@ -19,6 +24,15 @@ from sentinel_api.persistence.models import (
     WorkItemProjection,
 )
 from sentinel_api.persistence.protocols import EventStore
+
+HONESTY_BANNER = (
+    "Deterministic local suppliers · not live market data · "
+    "approval records permission only and never sends"
+)
+SOURCE_BOUNDARY = (
+    "Credential-free execution boundary: local synthetic research documents, "
+    "fake email provider, durable Temporal/PostgreSQL control plane."
+)
 
 
 async def session_view(
@@ -63,12 +77,54 @@ async def operator_run_view(
     evaluation_record = _latest(records, "evaluation")
     candidates = _candidates(candidate_record, evaluation_record)
     evidence = _evidence(evidence_record, candidates)
+    mode = resolve_autonomy(records)
+    label = autonomy_label(mode)
     proposal = await _proposal(records, proposal_broker)
+    if mode is AutonomyMode.RESEARCH_ONLY:
+        proposal = None
+    elif isinstance(proposal, dict):
+        proposal = {
+            **proposal,
+            "policyDecision": (
+                f"{autonomy_policy_decision(mode)}; fake provider only"
+            ),
+            "autonomyMode": mode.value,
+        }
     return {
         "session": session,
         "summary": summary.summary or "Credential-free procurement integration",
         "activePhase": (summary.active_phase or "intake").replace("_", " ").title(),
-        "policyLabel": f"Controlled procurement · rev {summary.policy_revision or 1}",
+        "autonomyMode": mode.value,
+        "autonomyLabel": label,
+        "autonomyOptions": [
+            {
+                "value": AutonomyMode.RESEARCH_ONLY.value,
+                "label": autonomy_label(AutonomyMode.RESEARCH_ONLY),
+                "description": (
+                    "Compare suppliers and produce files only. "
+                    "No RFQ proposal and no external contact path."
+                ),
+            },
+            {
+                "value": AutonomyMode.ASK_BEFORE_EXTERNAL.value,
+                "label": autonomy_label(AutonomyMode.ASK_BEFORE_EXTERNAL),
+                "description": (
+                    "Research freely, then pause for exact human approval "
+                    "before any external contact is authorized."
+                ),
+            },
+            {
+                "value": AutonomyMode.APPROVE_AND_HOLD.value,
+                "label": autonomy_label(AutonomyMode.APPROVE_AND_HOLD),
+                "description": (
+                    "Exact approval is allowed, but dispatch never happens "
+                    "automatically. Hold the permit until a separate gated send."
+                ),
+            },
+        ],
+        "policyLabel": f"{label} · rev {summary.policy_revision or 1}",
+        "honestyBanner": HONESTY_BANNER,
+        "sourceBoundary": SOURCE_BOUNDARY,
         "elapsedLabel": _elapsed(summary),
         "progress": {
             "completed": summary.completed_work_items,
@@ -84,6 +140,34 @@ async def operator_run_view(
         "proposal": proposal,
         "commands": _commands(events),
     }
+
+
+def resolve_autonomy(records: Sequence[IntegrationRecord]) -> AutonomyMode:
+    settings = [
+        record
+        for record in records
+        if record.record_kind == "autonomy_mode"
+    ]
+    if settings:
+        latest = max(settings, key=lambda record: (record.version, record.updated_at))
+        raw = latest.payload.get("autonomy_mode")
+        if raw is not None:
+            try:
+                return AutonomyMode(str(raw))
+            except ValueError:
+                pass
+    request = _latest(records, "request", "request_revision")
+    if request is not None:
+        raw = request.payload.get("autonomy_mode")
+        intake = request.payload.get("intake")
+        if raw is None and isinstance(intake, dict):
+            raw = intake.get("autonomy_mode")
+        if raw is not None:
+            try:
+                return AutonomyMode(str(raw))
+            except ValueError:
+                pass
+    return AutonomyMode.ASK_BEFORE_EXTERNAL
 
 
 def _latest(

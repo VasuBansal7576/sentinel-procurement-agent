@@ -1,4 +1,6 @@
-import type { CreateRunInput } from "../api";
+import type { AutonomyMode, CreateRunInput } from "../api";
+
+export type { AutonomyMode };
 
 export type RunState =
   | "queued"
@@ -126,11 +128,22 @@ export interface OperatorCommand {
   createdLabel: string;
 }
 
+export interface AutonomyOption {
+  value: AutonomyMode;
+  label: string;
+  description: string;
+}
+
 export interface OperatorRun {
   session: SessionSummary;
   summary: string;
   runtimeDisclosure: string;
+  honestyBanner: string;
+  sourceBoundary?: string;
   activePhase: string;
+  autonomyMode: AutonomyMode;
+  autonomyLabel: string;
+  autonomyOptions: AutonomyOption[];
   policyLabel: string;
   elapsedLabel: string;
   progress: {
@@ -165,6 +178,7 @@ export interface OperatorWorkbenchGateway {
   ): () => void;
   createRun(input: CreateRunInput): Promise<OperatorRun>;
   controlRun(runId: string, action: "pause" | "resume"): Promise<OperatorRun>;
+  setAutonomy(runId: string, mode: AutonomyMode): Promise<OperatorRun>;
   retryWork(runId: string, workId: string): Promise<OperatorRun>;
   sendCommand(
     runId: string,
@@ -177,3 +191,24 @@ export interface OperatorWorkbenchGateway {
     decision: "approve" | "reject",
   ): Promise<OperatorRun>;
 }
+
+export const DEFAULT_AUTONOMY_OPTIONS: AutonomyOption[] = [
+  {
+    value: "research_only",
+    label: "Research only · no external contact",
+    description:
+      "Compare suppliers and produce files only. No RFQ proposal and no external contact path.",
+  },
+  {
+    value: "ask_before_external",
+    label: "Ask before external contact",
+    description:
+      "Research freely, then pause for exact human approval before any external contact is authorized.",
+  },
+  {
+    value: "approve_and_hold",
+    label: "Approve and hold · no auto-send",
+    description:
+      "Exact approval is allowed, but dispatch never happens automatically. Hold the permit until a separate gated send.",
+  },
+];

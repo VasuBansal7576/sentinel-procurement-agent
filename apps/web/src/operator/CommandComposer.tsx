@@ -32,7 +32,7 @@ export function CommandComposer({ commands, onSend }: CommandComposerProps) {
         </p>
         {commands.length ? (
           <ol>
-            {commands.slice(0, 2).map((command) => (
+            {commands.slice(0, 8).map((command) => (
               <li key={command.id}>
                 <span className={`command-mode ${command.mode}`}>
                   {command.mode}

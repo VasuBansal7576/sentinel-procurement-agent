@@ -38,9 +38,12 @@ exists until a person has recorded and reviewed it.
   - need: `Three continuous-duty pumps, food-contact compatible, available in 30 days`
   - quantity: `3`
   - unit: `each`
+- Leave autonomy on **Ask before external contact** (default). Mention the other
+  two modes in plain language once: research only, approve and hold.
 - Select **Start run**.
-- Point out, in product language, the current phase, revision, progress,
-  attention count, nested child, and the execution-boundary disclosure.
+- Point out, in product language, the current phase, revision, autonomy,
+  progress, attention count, nested child, the persistent truth boundary, and
+  the execution-boundary disclosure.
 - Expand the active phase/subagent only far enough to show nesting. Do not turn
   the recording into a tool-log tour.
 
@@ -138,6 +141,7 @@ exists until a person has recorded and reviewed it.
 - [ ] Redirect increments revision and selectively retains safe evidence.
 - [ ] Tab close/reopen restores the same durable session.
 - [ ] Real worker stop/restart resumes without duplicate protected effects.
+- [ ] Autonomy is set in plain language; truth boundary says local suppliers / no send.
 - [ ] Proposal edit shows a diff; approval says no send.
 - [ ] Edit after approval returns to pending and requires a new exact approval.
 - [ ] At least two scoped artifacts download.

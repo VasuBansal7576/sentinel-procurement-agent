@@ -33,6 +33,17 @@ describe("structural operator workbench", () => {
     expect(
       screen.getByText(/FIXTURE MODE: typed local projection/),
     ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Deterministic local suppliers · not live market data/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("radiogroup", {
+        name: /How much autonomy this run may use/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("radio", { name: /Ask before external contact/i }),
+    ).toBeChecked();
 
     fireEvent.click(
       screen.getByRole("button", {
@@ -106,6 +117,28 @@ describe("structural operator workbench", () => {
     fireEvent.keyDown(evidenceTab, { key: "End" });
     expect(screen.getByRole("tab", { name: "Requirements" })).toHaveFocus();
     expect(screen.getByText("5 years")).toBeInTheDocument();
+  });
+
+  it("lets the operator change autonomy without engineer vocabulary", async () => {
+    render(<App gateway={createFixtureGateway()} />);
+    await screen.findByRole("heading", {
+      name: "Replace warehouse label printers",
+    });
+
+    fireEvent.click(
+      screen.getByRole("radio", { name: /Research only · no external contact/i }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("radio", {
+          name: /Research only · no external contact/i,
+        }),
+      ).toBeChecked(),
+    );
+    expect(
+      screen.queryByRole("heading", { name: "RFQ proposal" }),
+    ).not.toBeInTheDocument();
   });
 
   it("queues context and applies a redirect as acknowledged operator commands", async () => {

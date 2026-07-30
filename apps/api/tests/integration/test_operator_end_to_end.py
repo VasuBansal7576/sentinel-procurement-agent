@@ -74,6 +74,9 @@ def test_unrelated_categories_share_the_real_pipeline(intake: dict[str, str]) ->
         assert run["session"]["title"] == intake["title"]
         assert run["session"]["status"] == "completed"
         assert run["session"]["revision"] == 1
+        assert run["autonomyMode"] == "ask_before_external"
+        assert "Ask before external contact" in run["autonomyLabel"]
+        assert "not live market data" in run["honestyBanner"].lower()
         assert len(run["requirements"]) == 3
         assert len(run["candidates"]) == 3
         assert {candidate["evidenceCoverage"] for candidate in run["candidates"]} == {"33%"}
@@ -91,6 +94,43 @@ def test_unrelated_categories_share_the_real_pipeline(intake: dict[str, str]) ->
         assert events.text.count("event: tool.started") > 20
         assert events.text.count("event: tool.completed") > 20
         assert '"content":' not in events.text
+
+
+def test_research_only_autonomy_suppresses_external_proposal() -> None:
+    with TestClient(create_app()) as client:
+        response = client.post(
+            "/api/operator/runs",
+            json={
+                **CATEGORIES[0],
+                "autonomy_mode": "research_only",
+            },
+        )
+        assert response.status_code == 201, response.text
+        run = response.json()
+        assert run["autonomyMode"] == "research_only"
+        assert run["proposal"] is None
+        assert len(run["artifacts"]) == 4
+        assert "Research only" in run["policyLabel"]
+
+
+def test_operator_can_tighten_autonomy_after_completion() -> None:
+    with TestClient(create_app()) as client:
+        created = client.post("/api/operator/runs", json=CATEGORIES[1]).json()
+        run_id = created["session"]["id"]
+        assert created["proposal"]["status"] == "pending_approval"
+
+        response = client.post(
+            f"/api/operator/runs/{run_id}/autonomy",
+            json={
+                "command_id": str(uuid4()),
+                "autonomy_mode": "research_only",
+                "reason": "Operator disabled external contact for this finished case",
+            },
+        )
+        assert response.status_code == 200, response.text
+        run = response.json()
+        assert run["autonomyMode"] == "research_only"
+        assert run["proposal"] is None
 
 
 def test_operator_commands_proposals_and_run_scoped_downloads() -> None:

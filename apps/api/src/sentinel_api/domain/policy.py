@@ -9,6 +9,41 @@ from pydantic import Field, model_validator
 from sentinel_api.domain.common import ContractModel
 
 
+class AutonomyMode(StrEnum):
+    """Operator-facing autonomy levels in non-engineer language."""
+
+    RESEARCH_ONLY = "research_only"
+    ASK_BEFORE_EXTERNAL = "ask_before_external"
+    APPROVE_AND_HOLD = "approve_and_hold"
+
+
+AUTONOMY_LABELS: dict[AutonomyMode, str] = {
+    AutonomyMode.RESEARCH_ONLY: "Research only · no external contact",
+    AutonomyMode.ASK_BEFORE_EXTERNAL: "Ask before external contact",
+    AutonomyMode.APPROVE_AND_HOLD: "Approve and hold · no auto-send",
+}
+
+
+def autonomy_label(mode: AutonomyMode | str) -> str:
+    resolved = AutonomyMode(mode)
+    return AUTONOMY_LABELS[resolved]
+
+
+def autonomy_policy_decision(mode: AutonomyMode | str) -> str:
+    resolved = AutonomyMode(mode)
+    if resolved is AutonomyMode.RESEARCH_ONLY:
+        return "Research only: comparison and files only; external contact is disabled"
+    if resolved is AutonomyMode.APPROVE_AND_HOLD:
+        return (
+            "Approve and hold: exact approval records permission only; "
+            "dispatch stays a separate gated step and never auto-sends"
+        )
+    return (
+        "Ask before external contact: exact approval required; "
+        "approval records permission only and never sends"
+    )
+
+
 class ProtectedAction(StrEnum):
     EMAIL_SEND = "email_send"
     FILE_UPLOAD = "file_upload"

@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 
 from sentinel_api.application.walking_skeleton import CreateRunRequest
 from sentinel_api.integration.models import (
+    AutonomyCommandRequest,
     CommandRequest,
     MessageCommandRequest,
     ProposalDecisionRequest,
@@ -66,6 +67,20 @@ async def control_run(
 ) -> dict[str, object]:
     try:
         return await service_from_app(request).control(run_id, action, body)
+    except KeyError as error:
+        raise HTTPException(status_code=404, detail="Run not found") from error
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+
+
+@router.post("/runs/{run_id}/autonomy")
+async def set_autonomy(
+    run_id: UUID,
+    body: AutonomyCommandRequest,
+    request: Request,
+) -> dict[str, object]:
+    try:
+        return await service_from_app(request).set_autonomy(run_id, body)
     except KeyError as error:
         raise HTTPException(status_code=404, detail="Run not found") from error
     except ValueError as error:

@@ -39,8 +39,10 @@ describe("HTTP operator gateway", () => {
       description: "Annual service",
       quantity: "10",
       unit: "instrument",
+      autonomy_mode: "ask_before_external",
     });
     await gateway.controlRun("run-1", "pause");
+    await gateway.setAutonomy("run-1", "research_only");
     await gateway.sendCommand("run-1", "queue", "Preserve evidence");
     await gateway.sendCommand("run-1", "redirect", "Require twenty days");
     await gateway.decideProposal("run-1", "approve");
@@ -49,15 +51,22 @@ describe("HTTP operator gateway", () => {
       "/api/operator/sessions",
       "/api/operator/runs",
       "/api/operator/runs/run-1/controls/pause",
+      "/api/operator/runs/run-1/autonomy",
       "/api/operator/runs/run-1/messages",
       "/api/operator/runs/run-1/redirect",
       "/api/operator/runs/run-1/proposal/decision",
     ]);
-    expect(JSON.parse(fetchMock.mock.calls[4][1].body)).toMatchObject({
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toMatchObject({
+      autonomy_mode: "ask_before_external",
+    });
+    expect(JSON.parse(fetchMock.mock.calls[3][1].body)).toMatchObject({
+      autonomy_mode: "research_only",
+    });
+    expect(JSON.parse(fetchMock.mock.calls[5][1].body)).toMatchObject({
       text: "Require twenty days",
       changed_dependencies: ["request:requirements"],
     });
-    expect(JSON.parse(fetchMock.mock.calls[5][1].body)).toMatchObject({
+    expect(JSON.parse(fetchMock.mock.calls[6][1].body)).toMatchObject({
       decision: "approve",
     });
   });

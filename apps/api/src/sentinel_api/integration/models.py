@@ -7,7 +7,7 @@ from uuid import UUID
 
 from pydantic import Field, model_validator
 
-from sentinel_api.domain import ContractModel, utc_now
+from sentinel_api.domain import AutonomyMode, ContractModel, utc_now
 
 
 class IntegrationRecord(ContractModel):
@@ -70,6 +70,12 @@ class ProposalDecisionRequest(ContractModel):
 
 class RetryRequest(ContractModel):
     command_id: UUID
+
+
+class AutonomyCommandRequest(ContractModel):
+    command_id: UUID
+    autonomy_mode: AutonomyMode
+    reason: str = Field(default="Operator updated autonomy", min_length=2, max_length=1000)
 
 
 class CommandAckView(ContractModel):

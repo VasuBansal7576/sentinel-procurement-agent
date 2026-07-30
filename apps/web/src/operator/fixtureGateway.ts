@@ -1,12 +1,14 @@
 import { createRun as createWalkingSkeletonRun } from "../api";
 import type { RunView } from "../api";
 import type {
+  AutonomyMode,
   OperatorRun,
   OperatorWorkbenchGateway,
   ProposalEdit,
   SessionSummary,
   WorkNode,
 } from "./types";
+import { DEFAULT_AUTONOMY_OPTIONS } from "./types";
 
 const ACTIVE_RUN_ID = "run-industrial-printers";
 
@@ -28,8 +30,15 @@ function activeFixture(): OperatorRun {
       "Comparing serviceable 300 dpi printers after the operator added a five-year parts requirement.",
     runtimeDisclosure:
       "FIXTURE MODE: typed local projection, deterministic evidence, and fake email. Approval never sends.",
+    honestyBanner:
+      "Deterministic local suppliers · not live market data · approval records permission only and never sends",
+    sourceBoundary:
+      "Fixture projection boundary: local typed data, no live market research, no email send.",
     activePhase: "Supplier verification",
-    policyLabel: "Standard sourcing · rev 4",
+    autonomyMode: "ask_before_external",
+    autonomyLabel: "Ask before external contact",
+    autonomyOptions: DEFAULT_AUTONOMY_OPTIONS,
+    policyLabel: "Ask before external contact · rev 4",
     elapsedLabel: "38m active",
     progress: { completed: 14, total: 21, active: 2, blockers: 1 },
     workTree: [
@@ -536,8 +545,13 @@ function runViewAdapter(run: RunView): OperatorRun {
     summary: "Request normalized by the walking-skeleton API.",
     runtimeDisclosure:
       "FIXTURE MODE: walking-skeleton projection and fake external effects.",
+    honestyBanner:
+      "Deterministic local suppliers · not live market data · approval records permission only and never sends",
     activePhase: run.current_phase,
-    policyLabel: "Standard sourcing · rev 1",
+    autonomyMode: "ask_before_external",
+    autonomyLabel: "Ask before external contact",
+    autonomyOptions: DEFAULT_AUTONOMY_OPTIONS,
+    policyLabel: "Ask before external contact · rev 1",
     elapsedLabel: run.completed_at ? "complete" : "new",
     progress: {
       completed: run.events.filter((event) => event.status === "completed")
@@ -632,6 +646,20 @@ export function createFixtureGateway(): OperatorWorkbenchGateway {
       const run = getMutable(runId);
       run.session.status = action === "pause" ? "paused" : "running";
       run.session.updatedLabel = "just now";
+      return clone(run);
+    },
+    async setAutonomy(runId, mode: AutonomyMode) {
+      const run = getMutable(runId);
+      const option =
+        DEFAULT_AUTONOMY_OPTIONS.find((entry) => entry.value === mode) ??
+        DEFAULT_AUTONOMY_OPTIONS[1];
+      run.autonomyMode = mode;
+      run.autonomyLabel = option.label;
+      run.policyLabel = `${option.label} · rev ${run.session.revision}`;
+      run.session.updatedLabel = "just now";
+      if (mode === "research_only") {
+        run.proposal = undefined;
+      }
       return clone(run);
     },
     async retryWork(runId, workId) {

@@ -101,6 +101,23 @@ export function ActionRail({
         )}
       </section>
 
+      {!proposal && run.autonomyMode === "research_only" ? (
+        <section className="proposal-card" aria-labelledby="proposal-heading">
+          <header>
+            <div>
+              <p className="section-index">Protected action</p>
+              <h2 id="proposal-heading">External contact disabled</h2>
+            </div>
+            <span className="proposal-status rejected">research only</span>
+          </header>
+          <p className="policy-decision">
+            This run is set to research only. Sentinel may compare candidates
+            and produce files, but it will not open an RFQ proposal or authorize
+            external contact.
+          </p>
+        </section>
+      ) : null}
+
       {proposal ? (
         <section className="proposal-card" aria-labelledby="proposal-heading">
           <header>

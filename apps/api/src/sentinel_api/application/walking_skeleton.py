@@ -10,6 +10,7 @@ from pydantic import Field
 
 from sentinel_api.domain import (
     ArtifactKind,
+    AutonomyMode,
     CategoryField,
     CategorySchema,
     ContractModel,
@@ -36,6 +37,7 @@ class CreateRunRequest(ContractModel):
     description: str = Field(min_length=3, max_length=2000)
     quantity: Decimal = Field(gt=0, max_digits=18, decimal_places=4)
     unit: str = Field(min_length=1, max_length=64)
+    autonomy_mode: AutonomyMode = AutonomyMode.ASK_BEFORE_EXTERNAL
 
 
 class RunEvent(ContractModel):

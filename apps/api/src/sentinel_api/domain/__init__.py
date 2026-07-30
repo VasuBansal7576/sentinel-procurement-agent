@@ -23,10 +23,14 @@ from sentinel_api.domain.invalidation import (
     plan_invalidation,
 )
 from sentinel_api.domain.policy import (
+    AUTONOMY_LABELS,
+    AutonomyMode,
     EffectivePolicy,
     OrganizationPolicy,
     PlatformInvariants,
     RequestPolicyOverlay,
+    autonomy_label,
+    autonomy_policy_decision,
     resolve_policy,
 )
 from sentinel_api.domain.procurement import (
@@ -55,12 +59,14 @@ from sentinel_api.domain.tools import (
 )
 
 __all__ = [
+    "AUTONOMY_LABELS",
     "ActionIntent",
     "ActionOutcome",
     "ActionOutcomeState",
     "ApprovalPermit",
     "Artifact",
     "ArtifactKind",
+    "AutonomyMode",
     "Candidate",
     "CategoryField",
     "CategorySchema",
@@ -95,6 +101,8 @@ __all__ = [
     "ToolNamespace",
     "WorkProduct",
     "WorkProductKind",
+    "autonomy_label",
+    "autonomy_policy_decision",
     "plan_invalidation",
     "resolve_policy",
     "utc_now",

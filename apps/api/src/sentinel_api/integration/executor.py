@@ -13,11 +13,13 @@ from temporalio.exceptions import ApplicationError
 
 from sentinel_api.artifacts import generate_artifact_set
 from sentinel_api.domain import (
+    AutonomyMode,
     Candidate,
     EvidenceObservation,
     Money,
     RequestRevision,
     Supplier,
+    autonomy_policy_decision,
     utc_now,
 )
 from sentinel_api.evaluation import (
@@ -72,6 +74,7 @@ class CredentialFreeWorkExecutor:
             raise KeyError("typed request input record does not exist")
         revision = RequestRevision.model_validate(loaded.payload["revision"])
         line_item = revision.lots[0].line_items[0]
+        autonomy = _autonomy_from_record(loaded)
 
         candidates: list[Candidate] = []
         observations: list[EvidenceObservation] = []
@@ -257,46 +260,82 @@ class CredentialFreeWorkExecutor:
                     partial(self._records.put, artifact_record),
                 )
             )
-        recipient = "procurement-demo@example.test"
-        proposal_payload = {
-            "to": recipient,
-            "subject": f"Request for quotation — {line_item.name}",
-            "body": (
-                f"Please quote {line_item.quantity.value} {line_item.quantity.unit} "
-                f"of {line_item.name}. Confirm availability and lead time."
-            ),
-        }
-        proposal_result = await self._step(
-            request,
-            "proposal.prepare",
-            lambda: await_result(
-                self._proposal_broker.create_proposal(
-                    run_id=run_id,
-                    request_revision_id=revision.id,
-                    action_type="email.send",
-                    payload=proposal_payload,
-                    attachment_artifact_ids=tuple(record.record_ref for record in artifact_records),
-                    attachment_sha256=tuple(
-                        cast(str, record.content_sha256) for record in artifact_records
+        proposal_record: IntegrationRecord | None = None
+        product_specs: tuple[tuple[str, str], ...]
+        if autonomy is AutonomyMode.RESEARCH_ONLY:
+            await self._step(
+                request,
+                "proposal.suppress",
+                lambda: {
+                    "autonomy_mode": autonomy.value,
+                    "reason": "Research only: external RFQ contact is disabled",
+                },
+            )
+            summary = (
+                f"Compared {len(candidates)} candidates and generated "
+                f"{len(artifact_records)} artifacts under research-only autonomy"
+            )
+            product_specs = (
+                ("evidence:verified", "evidence"),
+                ("evaluation:ranking", "evaluation"),
+                ("artifact:deliverables", "artifact"),
+            )
+        else:
+            recipient = "procurement-demo@example.test"
+            proposal_payload = {
+                "to": recipient,
+                "subject": f"Request for quotation — {line_item.name}",
+                "body": (
+                    f"Please quote {line_item.quantity.value} {line_item.quantity.unit} "
+                    f"of {line_item.name}. Confirm availability and lead time."
+                ),
+            }
+            proposal_result = await self._step(
+                request,
+                "proposal.prepare",
+                lambda: await_result(
+                    self._proposal_broker.create_proposal(
+                        run_id=run_id,
+                        request_revision_id=revision.id,
+                        action_type="email.send",
+                        payload=proposal_payload,
+                        attachment_artifact_ids=tuple(
+                            record.record_ref for record in artifact_records
+                        ),
+                        attachment_sha256=tuple(
+                            cast(str, record.content_sha256) for record in artifact_records
+                        ),
+                    )
+                ),
+            )
+            proposal, version = proposal_result
+            proposal_id = proposal.id
+            proposal_record = await self._put_json(
+                request,
+                "proposal.persist",
+                "proposal_ref",
+                {
+                    "proposal_id": str(proposal_id),
+                    "current_version": int(version.version),
+                    "status": str(proposal.status.value),
+                    "risk_class": "external_send",
+                    "autonomy_mode": autonomy.value,
+                    "policy_decision": (
+                        f"{autonomy_policy_decision(autonomy)}; fake provider only"
                     ),
-                )
-            ),
-        )
-        proposal, version = proposal_result
-        proposal_id = proposal.id
-        proposal_record = await self._put_json(
-            request,
-            "proposal.persist",
-            "proposal_ref",
-            {
-                "proposal_id": str(proposal_id),
-                "current_version": int(version.version),
-                "status": str(proposal.status.value),
-                "risk_class": "external_send",
-                "policy_decision": "Exact approval required; fake provider only",
-            },
-            record_ref=proposal_id,
-        )
+                },
+                record_ref=proposal_id,
+            )
+            summary = (
+                f"Compared {len(candidates)} candidates and generated "
+                f"{len(artifact_records)} artifacts without credentials"
+            )
+            product_specs = (
+                ("evidence:verified", "evidence"),
+                ("evaluation:ranking", "evaluation"),
+                ("artifact:deliverables", "artifact"),
+                ("proposal:rfq", "proposal"),
+            )
         output_ref = deterministic_id(
             run_id,
             f"execution:{request.work_item.work_item_id}:{request.attempt}",
@@ -311,15 +350,15 @@ class CredentialFreeWorkExecutor:
                     "evidence_ref": str(evidence_record.record_ref),
                     "evaluation_ref": str(evaluation_record.record_ref),
                     "artifact_refs": [str(record.record_ref) for record in artifact_records],
-                    "proposal_ref": str(proposal_record.record_ref),
+                    "proposal_ref": (
+                        str(proposal_record.record_ref) if proposal_record is not None else None
+                    ),
+                    "autonomy_mode": autonomy.value,
                 },
             )
         )
         return WorkExecution(
-            summary=(
-                f"Compared {len(candidates)} candidates and generated "
-                f"{len(artifact_records)} artifacts without credentials"
-            ),
+            summary=summary,
             output_ref=f"record://{output_ref}",
             products=tuple(
                 ProducedWork(
@@ -335,12 +374,7 @@ class CredentialFreeWorkExecutor:
                     policy_revision=request.policy_revision,
                     depends_on=request.work_item.depends_on,
                 )
-                for key, kind in (
-                    ("evidence:verified", "evidence"),
-                    ("evaluation:ranking", "evaluation"),
-                    ("artifact:deliverables", "artifact"),
-                    ("proposal:rfq", "proposal"),
-                )
+                for key, kind in product_specs
             ),
         )
 
@@ -452,3 +486,17 @@ def _json_scalar(value: object) -> object:
     if isinstance(value, Decimal):
         return str(value)
     return value
+
+
+def _autonomy_from_record(record: IntegrationRecord) -> AutonomyMode:
+    raw = record.payload.get("autonomy_mode")
+    if raw is None:
+        intake = record.payload.get("intake")
+        if isinstance(intake, dict):
+            raw = intake.get("autonomy_mode")
+    if raw is None:
+        return AutonomyMode.ASK_BEFORE_EXTERNAL
+    try:
+        return AutonomyMode(str(raw))
+    except ValueError:
+        return AutonomyMode.ASK_BEFORE_EXTERNAL
