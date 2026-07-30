@@ -60,6 +60,8 @@ class HttpResendTransport:
         request_headers = {
             "Authorization": f"Bearer {self._api_key}",
             "Accept": "application/json",
+            # Cloudflare blocks the default Python-urllib signature (error 1010).
+            "User-Agent": "SentinelProcurementAgent/1.0 (+https://github.com/VasuBansal7576/sentinel-procurement-agent)",
             **dict(headers),
         }
         if payload is not None:
