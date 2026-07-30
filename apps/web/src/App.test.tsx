@@ -213,7 +213,10 @@ describe("structural operator workbench", () => {
       screen.getByRole("button", { name: "Approve exact v4 — no send" }),
     );
     expect(
-      await screen.findByText(/Approved by Current operator.*No dispatch occurred/),
+      await screen.findByText(/Approved by Current operator/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Approval itself did not send/i),
     ).toBeInTheDocument();
     expect(screen.getByText("approved")).toBeInTheDocument();
 

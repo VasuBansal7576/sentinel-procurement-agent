@@ -118,6 +118,8 @@ export interface Proposal {
   current: ProposalVersion;
   previous?: ProposalVersion;
   approvedBy?: string;
+  canExecute?: boolean;
+  executionLabel?: string;
 }
 
 export interface OperatorCommand {
@@ -190,6 +192,7 @@ export interface OperatorWorkbenchGateway {
     runId: string,
     decision: "approve" | "reject",
   ): Promise<OperatorRun>;
+  executeApprovedEmail?(runId: string): Promise<OperatorRun>;
 }
 
 export const DEFAULT_AUTONOMY_OPTIONS: AutonomyOption[] = [

@@ -161,6 +161,12 @@ export function createHttpGateway(): OperatorWorkbenchGateway {
         }),
       );
     },
+    executeApprovedEmail(runId) {
+      return requestJson<OperatorRun>(
+        `/api/operator/runs/${runId}/proposal/execute`,
+        jsonRequest("POST", {}),
+      );
+    },
   };
   return gateway;
 }
@@ -246,6 +252,14 @@ export function createApiFirstGateway(
       return withAvailabilityFallback((gateway) =>
         gateway.decideProposal(runId, decision),
       );
+    },
+    executeApprovedEmail(runId) {
+      return withAvailabilityFallback((gateway) => {
+        if (!gateway.executeApprovedEmail) {
+          throw new Error("Email execution is not available on this gateway.");
+        }
+        return gateway.executeApprovedEmail(runId);
+      });
     },
   };
 }

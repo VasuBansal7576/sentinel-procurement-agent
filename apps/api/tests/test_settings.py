@@ -51,10 +51,20 @@ def test_live_providers_fail_closed_before_the_final_credential_gate() -> None:
             credential_gate="live-approved",
         )
 
+    with pytest.raises(ValidationError, match="RESEND_API_KEY"):
+        Settings(
+            _env_file=None,
+            email_provider="resend",
+            credential_gate="live-approved",
+            controlled_recipient="owner@example.test",
+        )
+
     settings = Settings(
         _env_file=None,
         email_provider="resend",
         credential_gate="live-approved",
         controlled_recipient="owner@example.test",
+        resend_api_key="re_test_key",
     )
     assert settings.email_provider == "resend"
+    assert settings.resend_api_key == "re_test_key"

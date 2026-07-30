@@ -158,3 +158,16 @@ async def decide_proposal(
         raise HTTPException(status_code=404, detail="Proposal not found") from error
     except ValueError as error:
         raise HTTPException(status_code=409, detail=str(error)) from error
+
+
+@router.post("/runs/{run_id}/proposal/execute")
+async def execute_approved_email(
+    run_id: UUID,
+    request: Request,
+) -> dict[str, object]:
+    try:
+        return await service_from_app(request).execute_approved_email(run_id)
+    except KeyError as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error

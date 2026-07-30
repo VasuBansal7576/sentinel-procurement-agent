@@ -514,6 +514,16 @@ export function App({ gateway }: AppProps) {
                     workbenchGateway.decideProposal(run.session.id, decision),
                   )
                 }
+                onExecuteProposal={
+                  workbenchGateway.executeApprovedEmail
+                    ? () =>
+                        mutate(() =>
+                          workbenchGateway.executeApprovedEmail!(
+                            run.session.id,
+                          ),
+                        )
+                    : undefined
+                }
               />
             </div>
 

@@ -35,6 +35,7 @@ from sentinel_api.integration.projections import (
     resolve_autonomy,
     session_view,
 )
+from sentinel_api.integration.protected import ProtectedEmailBoundary
 from sentinel_api.integration.repository import IntegrationRepository
 from sentinel_api.integration.runtime import RuntimeLauncher
 from sentinel_api.persistence.models import EventDraft, NewRun
@@ -64,6 +65,9 @@ class IntegrationService:
             "Approval records permission only; it never sends."
         ),
         honesty_banner: str = HONESTY_BANNER,
+        controlled_recipient: str = "procurement-demo@example.test",
+        email_boundary: ProtectedEmailBoundary | None = None,
+        live_email_enabled: bool = False,
     ) -> None:
         self.event_store = event_store
         self.records = records
@@ -71,6 +75,9 @@ class IntegrationService:
         self.proposal_broker = proposal_broker
         self.runtime_disclosure = runtime_disclosure
         self.honesty_banner = honesty_banner
+        self.controlled_recipient = controlled_recipient
+        self.email_boundary = email_boundary
+        self.live_email_enabled = live_email_enabled
 
     async def create_run(self, request: CreateRunRequest) -> dict[str, object]:
         case, revision, runtime_input, record = normalize_intake(request)
@@ -171,6 +178,21 @@ class IntegrationService:
         )
         projection["runtimeDisclosure"] = self.runtime_disclosure
         projection["honestyBanner"] = self.honesty_banner
+        projection["liveEmailEnabled"] = self.live_email_enabled
+        projection["controlledRecipient"] = self.controlled_recipient
+        proposal = projection.get("proposal")
+        if isinstance(proposal, dict) and proposal.get("status") == "approved":
+            proposal = {
+                **proposal,
+                "canExecute": self.email_boundary is not None
+                and resolve_autonomy(records) is not AutonomyMode.RESEARCH_ONLY,
+                "executionLabel": (
+                    "Send approved RFQ (controlled live provider)"
+                    if self.live_email_enabled
+                    else "Execute approved RFQ (fake provider only)"
+                ),
+            }
+            projection["proposal"] = proposal
         return projection
 
     async def get_work_tree(self, run_id: UUID) -> list[dict[str, object]]:
@@ -543,7 +565,7 @@ class IntegrationService:
                 id=deterministic_id(run_id, "organization-policy"),
                 organization_id=deterministic_id(run_id, "organization"),
                 protected_actions=frozenset({ProtectedAction.EMAIL_SEND}),
-                controlled_recipient="procurement-demo@example.test",
+                controlled_recipient=self.controlled_recipient,
             )
             policy = resolve_policy(
                 organization,
@@ -602,6 +624,81 @@ class IntegrationService:
                 },
                 actor_id=str(body.approver_id),
                 idempotency_key=f"proposal-decision:{decision_ref}",
+            ),
+        )
+        return await self.get_run(run_id)
+
+    async def execute_approved_email(self, run_id: UUID) -> dict[str, object]:
+        if self.email_boundary is None:
+            raise ValueError("email execution boundary is not configured")
+        records = await self.records.list(run_id)
+        if resolve_autonomy(records) is AutonomyMode.RESEARCH_ONLY:
+            raise ValueError("research only autonomy disables external RFQ execution")
+        proposal, version = await self._proposal(run_id)
+        decisions = [
+            record
+            for record in records
+            if record.record_kind == "proposal_decision"
+            and record.payload.get("proposal_id") == str(proposal.id)
+            and int(str(record.payload.get("version", 0))) == version.version
+        ]
+        if not decisions or str(decisions[-1].payload.get("decision")) != "approved":
+            raise ValueError("exact proposal version is not approved")
+        permit_raw = decisions[-1].payload.get("permit_id")
+        if not permit_raw:
+            raise ValueError("approved proposal has no single-use permit")
+        prior_execution = [
+            record
+            for record in records
+            if record.record_kind == "email_execution"
+            and record.payload.get("proposal_id") == str(proposal.id)
+            and int(str(record.payload.get("version", 0))) == version.version
+        ]
+        if prior_execution:
+            return await self.get_run(run_id)
+        result = await self.email_boundary.execute(
+            run_id=run_id,
+            permit_id=UUID(str(permit_raw)),
+            proposal_id=proposal.id,
+        )
+        await self.records.put(
+            IntegrationRecord(
+                run_id=run_id,
+                record_ref=deterministic_id(
+                    run_id,
+                    f"email-execution:{proposal.id}:{version.version}",
+                ),
+                record_kind="email_execution",
+                payload={
+                    "proposal_id": str(proposal.id),
+                    "version": version.version,
+                    "permit_id": str(permit_raw),
+                    "state": str(result.state.value),
+                    "provider_reference": result.provider_reference,
+                    "detail": result.detail,
+                    "live": self.live_email_enabled,
+                },
+            )
+        )
+        await self.event_store.append_event(
+            run_id,
+            EventDraft(
+                event_type="email.execution_completed",
+                status=str(result.state.value),
+                summary=(
+                    f"Protected email execution finished as {result.state.value}"
+                ),
+                payload={
+                    "proposal_id": str(proposal.id),
+                    "version": version.version,
+                    "state": str(result.state.value),
+                    "provider_reference": result.provider_reference,
+                    "live": self.live_email_enabled,
+                },
+                actor_id="protected-email-executor",
+                idempotency_key=(
+                    f"email-execution:{proposal.id}:{version.version}:{result.state.value}"
+                ),
             ),
         )
         return await self.get_run(run_id)

@@ -6,12 +6,14 @@ interface ActionRailProps {
   run: OperatorRun;
   onSaveProposal: (edit: ProposalEdit) => Promise<void>;
   onDecideProposal: (decision: "approve" | "reject") => Promise<void>;
+  onExecuteProposal?: () => Promise<void>;
 }
 
 export function ActionRail({
   run,
   onSaveProposal,
   onDecideProposal,
+  onExecuteProposal,
 }: ActionRailProps) {
   const [proposalView, setProposalView] = useState<"preview" | "diff">(
     "preview",
@@ -323,9 +325,18 @@ export function ActionRail({
               ) : proposal.status === "approved" ? (
                 <>
                   <p className="decision-receipt" role="status">
-                    Approved by {proposal.approvedBy}. No dispatch occurred;
-                    execution remains a separate fake-only gate.
+                    Approved by {proposal.approvedBy}. Approval itself did not
+                    send. Execution is a separate gated action.
                   </p>
+                  {proposal.canExecute && onExecuteProposal ? (
+                    <button
+                      type="button"
+                      onClick={() => void onExecuteProposal()}
+                    >
+                      {proposal.executionLabel ??
+                        "Execute approved RFQ (separate gate)"}
+                    </button>
+                  ) : null}
                   <button
                     className="edit-proposal"
                     type="button"

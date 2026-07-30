@@ -3,7 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import AnyHttpUrl, Field, model_validator
+from pydantic import AliasChoices, AnyHttpUrl, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,6 +16,7 @@ class Settings(BaseSettings):
         env_ignore_empty=True,
         extra="ignore",
         case_sensitive=False,
+        populate_by_name=True,
     )
 
     environment: Literal["development", "test", "production"] = "development"
@@ -34,8 +35,17 @@ class Settings(BaseSettings):
     object_store_secret_key: str = "sentinel-local-only"
     model_provider: Literal["fake", "openai"] = "fake"
     email_provider: Literal["fake", "resend", "gmail"] = "fake"
+    email_sender: str = "onboarding@resend.dev"
     controlled_recipient: str | None = None
     credential_gate: Literal["fake-only", "live-approved"] = "fake-only"
+    resend_api_key: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "resend_api_key",
+            "RESEND_API_KEY",
+            "SENTINEL_RESEND_API_KEY",
+        ),
+    )
     demo_mode: bool = False
     demo_step_delay_ms: int = Field(default=0, ge=0, le=5_000)
     demo_failure_step: str | None = Field(
@@ -58,6 +68,10 @@ class Settings(BaseSettings):
             raise ValueError("live providers require the explicit post-acceptance credential gate")
         if self.email_provider != "fake" and not self.controlled_recipient:
             raise ValueError("live email requires one controlled recipient")
+        if self.email_provider == "resend" and not self.resend_api_key:
+            raise ValueError("live Resend email requires RESEND_API_KEY")
+        if self.email_provider == "gmail":
+            raise ValueError("gmail provider is not enabled for production composition")
         return self
 
 

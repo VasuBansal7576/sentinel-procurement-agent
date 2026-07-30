@@ -54,11 +54,13 @@ class CredentialFreeWorkExecutor:
         event_store: EventStore,
         proposal_broker: ApprovalBrokerAdapter,
         demo_profile: DemoProfile | None = None,
+        controlled_recipient: str = "procurement-demo@example.test",
     ) -> None:
         self._records = records
         self._event_store = event_store
         self._proposal_broker = proposal_broker
         self._demo_profile = demo_profile or DemoProfile()
+        self._controlled_recipient = controlled_recipient
 
     async def __call__(self, request: ChildActivityInput) -> WorkExecution:
         if request.work_item.kind != "end_to_end":
@@ -281,7 +283,7 @@ class CredentialFreeWorkExecutor:
                 ("artifact:deliverables", "artifact"),
             )
         else:
-            recipient = "procurement-demo@example.test"
+            recipient = self._controlled_recipient
             proposal_payload = {
                 "to": recipient,
                 "subject": f"Request for quotation — {line_item.name}",

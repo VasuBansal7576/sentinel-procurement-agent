@@ -711,6 +711,21 @@ export function createFixtureGateway(): OperatorWorkbenchGateway {
       run.proposal.status = decision === "approve" ? "approved" : "rejected";
       run.proposal.approvedBy =
         decision === "approve" ? "Current operator" : undefined;
+      if (decision === "approve") {
+        run.proposal.canExecute = true;
+        run.proposal.executionLabel =
+          "Execute approved RFQ (fake provider only)";
+      }
+      return clone(run);
+    },
+    async executeApprovedEmail(runId) {
+      const run = getMutable(runId);
+      if (!run.proposal || run.proposal.status !== "approved") {
+        throw new Error("Approve the exact proposal before execution.");
+      }
+      run.proposal.canExecute = false;
+      run.proposal.executionLabel = "Executed on fake provider · no real send";
+      run.session.updatedLabel = "just now";
       return clone(run);
     },
   };
