@@ -3,7 +3,7 @@
 from uuid import UUID, uuid4
 
 import pytest
-from temporalio.testing import WorkflowEnvironment
+from temporal_support import temporal_time_skipping_env
 from temporalio.worker import Worker
 
 from sentinel_api.application.walking_skeleton import CreateRunRequest
@@ -23,9 +23,7 @@ from sentinel_api.workflows.runtime import start_procurement_run
 
 @pytest.mark.asyncio
 async def test_production_executor_crosses_real_parent_and_child_workflows() -> None:
-    async with await WorkflowEnvironment.start_time_skipping(
-        download_dest_dir="/tmp/sentinel-temporal-test-server"
-    ) as environment:
+    async with temporal_time_skipping_env() as environment:
         event_store = InMemoryEventStore()
         records = InMemoryIntegrationRepository()
         broker = ApprovalBroker()

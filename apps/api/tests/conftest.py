@@ -1,7 +1,6 @@
-"""Keep automated tests on credential-free memory composition.
+"""Credential-free defaults for the API suite.
 
-Explicit env pins win over a developer machine's local `.env`, so live email
-settings never leak into CI-equivalent runs.
+Pins fail-closed providers so a developer machine `.env` cannot leak into tests.
 """
 
 from __future__ import annotations
@@ -17,7 +16,6 @@ def credential_free_test_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SENTINEL_MODEL_PROVIDER", "fake")
     monkeypatch.setenv("SENTINEL_EMAIL_PROVIDER", "fake")
     monkeypatch.setenv("SENTINEL_EMAIL_SENDER", "onboarding@resend.dev")
-    # Pin explicitly so a developer .env cannot override test policy.
     monkeypatch.setenv(
         "SENTINEL_CONTROLLED_RECIPIENT",
         "procurement-demo@example.test",

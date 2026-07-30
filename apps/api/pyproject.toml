@@ -35,6 +35,7 @@ packages = ["src/sentinel_api"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src", "tests"]
 addopts = "-q --strict-markers --disable-warnings"
 
 [tool.ruff]

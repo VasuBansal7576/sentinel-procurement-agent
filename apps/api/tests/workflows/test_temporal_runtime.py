@@ -3,6 +3,7 @@ from collections import Counter
 from uuid import NAMESPACE_URL, uuid4, uuid5
 
 import pytest
+from temporal_support import temporal_time_skipping_env
 from temporalio import activity
 from temporalio.api.enums.v1 import EventType
 from temporalio.client import WorkflowFailureError
@@ -230,9 +231,7 @@ async def wait_for_state(
 
 @pytest.mark.asyncio
 async def test_children_retry_fail_independently_and_replay() -> None:
-    async with await WorkflowEnvironment.start_time_skipping(
-        download_dest_dir="/tmp/sentinel-temporal-test-server"
-    ) as environment:
+    async with temporal_time_skipping_env() as environment:
         fake = FakeRuntimeActivities()
         task_queue = f"runtime-{uuid4()}"
         transient = make_item("Transient source", "transient-once", "evaluation:transient")
@@ -284,9 +283,7 @@ async def test_children_retry_fail_independently_and_replay() -> None:
 
 @pytest.mark.asyncio
 async def test_exhausted_retryable_child_waits_for_targeted_operator_retry() -> None:
-    async with await WorkflowEnvironment.start_time_skipping(
-        download_dest_dir="/tmp/sentinel-temporal-test-server"
-    ) as environment:
+    async with temporal_time_skipping_env() as environment:
         fake = FakeRuntimeActivities()
         task_queue = f"recoverable-{uuid4()}"
         recoverable = make_item(
@@ -355,9 +352,7 @@ async def test_exhausted_retryable_child_waits_for_targeted_operator_retry() -> 
 
 @pytest.mark.asyncio
 async def test_updates_selectively_invalidate_and_survive_worker_restart() -> None:
-    async with await WorkflowEnvironment.start_time_skipping(
-        download_dest_dir="/tmp/sentinel-temporal-test-server"
-    ) as environment:
+    async with temporal_time_skipping_env() as environment:
         fake = FakeRuntimeActivities()
         task_queue = f"control-{uuid4()}"
         invalidated = make_item(
@@ -508,9 +503,7 @@ async def test_updates_selectively_invalidate_and_survive_worker_restart() -> No
 
 @pytest.mark.asyncio
 async def test_parent_cancellation_reaches_active_child_activity() -> None:
-    async with await WorkflowEnvironment.start_time_skipping(
-        download_dest_dir="/tmp/sentinel-temporal-test-server"
-    ) as environment:
+    async with temporal_time_skipping_env() as environment:
         fake = FakeRuntimeActivities()
         task_queue = f"cancel-{uuid4()}"
         blocked = make_item(
