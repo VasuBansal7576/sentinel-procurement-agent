@@ -4,6 +4,8 @@ import type { OperatorRun, ProposalEdit } from "./types";
 
 interface ActionRailProps {
   run: OperatorRun;
+  /** decision-first puts the RFQ card above the stage for approval mode */
+  layout?: "rail" | "decision-first";
   onSaveProposal: (edit: ProposalEdit) => Promise<void>;
   onDecideProposal: (decision: "approve" | "reject") => Promise<void>;
   onExecuteProposal?: () => Promise<void>;
@@ -11,6 +13,7 @@ interface ActionRailProps {
 
 export function ActionRail({
   run,
+  layout = "rail",
   onSaveProposal,
   onDecideProposal,
   onExecuteProposal,
@@ -62,47 +65,8 @@ export function ActionRail({
     target.focus();
   }
 
-  return (
-    <aside className="action-rail" aria-labelledby="output-heading">
-      <section className="artifact-section">
-        <div className="rail-heading">
-          <div>
-            <p className="section-index">Outputs</p>
-            <h2 id="output-heading">Artifact rail</h2>
-          </div>
-          <span>{run.artifacts.length}</span>
-        </div>
-        {run.artifacts.length ? (
-          <ul className="artifact-list">
-            {run.artifacts.map((artifact) => (
-              <li key={artifact.id}>
-                <span className="file-mark" aria-hidden="true">
-                  {artifact.kind.slice(0, 2).toUpperCase()}
-                </span>
-                <div>
-                  <strong>{artifact.filename}</strong>
-                  <small>
-                    v{artifact.version} · {artifact.sizeLabel}
-                  </small>
-                  <span className={`artifact-status ${artifact.status}`}>
-                    {artifact.status}
-                  </span>
-                </div>
-                {artifact.status !== "building" ? (
-                  <a href={artifact.downloadUrl}>Download</a>
-                ) : (
-                  <span className="building-label">Rebuilding</span>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="rail-empty">
-            Artifacts appear here as outputs stabilize.
-          </p>
-        )}
-      </section>
-
+  const proposalBlock = (
+    <>
       {!proposal && run.autonomyMode === "research_only" ? (
         <section className="proposal-card" aria-labelledby="proposal-heading">
           <header>
@@ -121,11 +85,26 @@ export function ActionRail({
       ) : null}
 
       {proposal ? (
-        <section className="proposal-card" aria-labelledby="proposal-heading">
+        <section
+          className={
+            layout === "decision-first"
+              ? "proposal-card proposal-card-decision"
+              : "proposal-card"
+          }
+          aria-labelledby="proposal-heading"
+        >
           <header>
             <div>
-              <p className="section-index">Protected action</p>
-              <h2 id="proposal-heading">RFQ proposal</h2>
+              <p className="section-index">
+                {layout === "decision-first"
+                  ? "Needs your decision"
+                  : "Protected action"}
+              </p>
+              <h2 id="proposal-heading">
+                {layout === "decision-first"
+                  ? "RFQ ready for exact approval"
+                  : "RFQ proposal"}
+              </h2>
             </div>
             <span className={`proposal-status ${proposal.status}`}>
               {proposal.status.replace("_", " ")}
@@ -361,6 +340,62 @@ export function ActionRail({
           )}
         </section>
       ) : null}
+    </>
+  );
+
+  return (
+    <aside
+      className={
+        layout === "decision-first"
+          ? "action-rail action-rail-decision"
+          : "action-rail"
+      }
+      aria-labelledby="output-heading"
+    >
+      {layout === "decision-first" ? proposalBlock : null}
+
+      <section className="artifact-section">
+        <div className="rail-heading">
+          <div>
+            <p className="section-index">Outputs</p>
+            <h2 id="output-heading">
+              {layout === "decision-first" ? "Files" : "Artifact rail"}
+            </h2>
+          </div>
+          <span>{run.artifacts.length}</span>
+        </div>
+        {run.artifacts.length ? (
+          <ul className="artifact-list">
+            {run.artifacts.map((artifact) => (
+              <li key={artifact.id}>
+                <span className="file-mark" aria-hidden="true">
+                  {artifact.kind.slice(0, 2).toUpperCase()}
+                </span>
+                <div>
+                  <strong>{artifact.filename}</strong>
+                  <small>
+                    v{artifact.version} · {artifact.sizeLabel}
+                  </small>
+                  <span className={`artifact-status ${artifact.status}`}>
+                    {artifact.status}
+                  </span>
+                </div>
+                {artifact.status !== "building" ? (
+                  <a href={artifact.downloadUrl}>Download</a>
+                ) : (
+                  <span className="building-label">Rebuilding</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="rail-empty">
+            Artifacts appear here as outputs stabilize.
+          </p>
+        )}
+      </section>
+
+      {layout === "rail" ? proposalBlock : null}
     </aside>
   );
 }

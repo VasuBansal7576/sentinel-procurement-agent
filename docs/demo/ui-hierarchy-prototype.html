@@ -1,0 +1,1078 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sentinel — hierarchy prototype</title>
+    <style>
+      :root {
+        --ink: #182018;
+        --muted: #697064;
+        --line: #b9bdad;
+        --line-soft: #d0d2c6;
+        --paper: #eff0e6;
+        --paper-strong: #f7f6ed;
+        --forest: #213c2a;
+        --forest-mid: #34583d;
+        --acid: #c8e94c;
+        --amber: #ad6b25;
+        --red: #9a4038;
+        --blue: #446978;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        color: var(--ink);
+        background:
+          linear-gradient(rgb(33 60 42 / 3%) 1px, transparent 1px), #e8e9dc;
+        background-size: 100% 4rem;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-weight: 400;
+      }
+
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .proto-note {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.65rem 1rem;
+        border-bottom: 1px solid #c4b27a;
+        background: #f7f1d8;
+        font-size: 0.78rem;
+      }
+
+      .proto-note strong {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.62rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #7a6420;
+      }
+
+      .view-switch {
+        display: flex;
+        gap: 0.4rem;
+      }
+
+      .view-switch button {
+        min-height: 2rem;
+        padding: 0 0.75rem;
+        border: 1px solid #a08b4a;
+        background: transparent;
+        color: #4d4528;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .view-switch button[aria-pressed="true"] {
+        background: var(--forest);
+        border-color: var(--forest);
+        color: white;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 14.5rem minmax(0, 1fr);
+        min-height: calc(100vh - 2.9rem);
+      }
+
+      .sidebar {
+        display: flex;
+        flex-direction: column;
+        background: var(--forest);
+        color: #f5f4e8;
+        border-right: 1px solid #182018;
+      }
+
+      .brand {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        min-height: 4.75rem;
+        padding: 1rem 1.1rem;
+        border-bottom: 1px solid rgb(255 255 255 / 18%);
+      }
+
+      .mark {
+        display: grid;
+        width: 2.2rem;
+        height: 2.2rem;
+        place-items: center;
+        border: 1px solid var(--acid);
+        color: var(--acid);
+        font-family: Georgia, serif;
+        font-size: 1.35rem;
+      }
+
+      .brand p {
+        margin: 0 0 0.1rem;
+        font-family: Georgia, serif;
+        font-size: 1.35rem;
+      }
+
+      .brand span {
+        color: #bac3b7;
+        font-size: 0.6rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .side-block {
+        padding: 1rem;
+      }
+
+      .side-label {
+        margin: 0 0 0.45rem;
+        color: #aab5a8;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.58rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .session {
+        width: 100%;
+        display: grid;
+        gap: 0.2rem;
+        padding: 0.75rem 0.8rem;
+        border: 0;
+        border-left: 3px solid transparent;
+        background: transparent;
+        color: inherit;
+        text-align: left;
+      }
+
+      .session.active {
+        background: #eff0e6;
+        color: var(--ink);
+        border-left-color: var(--acid);
+      }
+
+      .session strong {
+        font-size: 0.78rem;
+      }
+
+      .session small {
+        color: #abb5a9;
+        font-size: 0.65rem;
+      }
+
+      .session.active small {
+        color: var(--muted);
+      }
+
+      .main {
+        min-width: 0;
+        padding: 1rem 1.15rem 1.25rem;
+      }
+
+      /* PRIMARY: one glance status */
+      .status-hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 1rem;
+        align-items: start;
+        padding: 1rem 1.1rem;
+        border: 1px solid var(--line);
+        background: var(--paper-strong);
+      }
+
+      .eyebrow {
+        margin: 0 0 0.35rem;
+        color: var(--muted);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.58rem;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+
+      .status-hero h1 {
+        margin: 0 0 0.45rem;
+        font-size: clamp(1.7rem, 2.8vw, 2.35rem);
+        line-height: 1;
+        letter-spacing: -0.03em;
+      }
+
+      .lead {
+        margin: 0;
+        max-width: 42rem;
+        color: #4d574c;
+        font-size: 0.92rem;
+        line-height: 1.45;
+      }
+
+      .lead em {
+        font-style: normal;
+        font-weight: 700;
+        color: var(--ink);
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: end;
+        gap: 0.55rem;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        min-height: 2.2rem;
+        padding: 0 0.75rem;
+        border: 1px solid #4c7757;
+        color: #2f663d;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.62rem;
+        text-transform: uppercase;
+      }
+
+      .pill::before {
+        content: "";
+        width: 0.45rem;
+        height: 0.45rem;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      .pill.attention {
+        border-color: var(--amber);
+        color: #855017;
+      }
+
+      .pill.done {
+        border-color: #7a9a81;
+        color: #2f663d;
+      }
+
+      .btn {
+        min-height: 2.35rem;
+        padding: 0 0.95rem;
+        border: 1px solid #536052;
+        background: transparent;
+        color: #29372d;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .btn.primary {
+        border-color: var(--forest);
+        background: var(--forest);
+        color: white;
+      }
+
+      .btn.acid {
+        border-color: var(--acid);
+        background: var(--acid);
+        color: #182018;
+      }
+
+      .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem 1.1rem;
+        margin-top: 0.85rem;
+        color: var(--muted);
+        font-size: 0.72rem;
+      }
+
+      .meta-row b {
+        color: var(--ink);
+        font-weight: 700;
+      }
+
+      /* Secondary chrome: compact, quiet */
+      .quiet-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+        margin-top: 0.7rem;
+      }
+
+      .chip,
+      .ghost-details summary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        min-height: 1.85rem;
+        padding: 0 0.65rem;
+        border: 1px solid var(--line-soft);
+        background: rgb(255 255 255 / 35%);
+        color: #4a5348;
+        font-size: 0.68rem;
+      }
+
+      .ghost-details {
+        display: inline-block;
+      }
+
+      .ghost-details summary {
+        list-style: none;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .ghost-details summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .ghost-details[open] summary {
+        border-color: var(--forest-mid);
+        background: rgb(33 60 42 / 6%);
+      }
+
+      .ghost-panel {
+        margin-top: 0.45rem;
+        padding: 0.75rem 0.85rem;
+        border: 1px solid var(--line);
+        background: var(--paper);
+        color: #475349;
+        font-size: 0.72rem;
+        line-height: 1.45;
+      }
+
+      .ghost-panel p {
+        margin: 0 0 0.45rem;
+      }
+
+      .ghost-panel p:last-child {
+        margin-bottom: 0;
+      }
+
+      .autonomy-mini {
+        display: flex;
+        gap: 0.45rem;
+        align-items: center;
+      }
+
+      .autonomy-mini select {
+        min-height: 1.85rem;
+        padding: 0 0.45rem;
+        border: 1px solid var(--line);
+        background: white;
+        font-size: 0.68rem;
+      }
+
+      /* Work stage */
+      .stage {
+        display: grid;
+        grid-template-columns: minmax(15rem, 0.85fr) minmax(0, 1.4fr) minmax(14rem, 0.9fr);
+        min-height: 24rem;
+        margin-top: 0.85rem;
+        border: 1px solid var(--ink);
+        background: rgb(255 255 255 / 28%);
+      }
+
+      .panel {
+        min-width: 0;
+        padding: 0.9rem;
+      }
+
+      .panel + .panel {
+        border-left: 1px solid var(--ink);
+      }
+
+      .panel-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .panel-head h2 {
+        font-size: 1.25rem;
+        line-height: 1;
+      }
+
+      .panel-head span {
+        color: var(--muted);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.58rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .tree-item,
+      .cand,
+      .file {
+        padding: 0.65rem 0.7rem;
+        border: 1px solid var(--line-soft);
+        background: var(--paper-strong);
+        margin-bottom: 0.45rem;
+      }
+
+      .tree-item.active {
+        border-color: var(--forest-mid);
+        box-shadow: inset 3px 0 0 var(--acid);
+      }
+
+      .tree-item strong,
+      .cand strong,
+      .file strong {
+        display: block;
+        margin-bottom: 0.2rem;
+        font-size: 0.8rem;
+      }
+
+      .tree-item p,
+      .cand p,
+      .file p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.7rem;
+        line-height: 1.35;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 0;
+        margin-bottom: 0.65rem;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .tabs button {
+        min-height: 2rem;
+        padding: 0 0.75rem;
+        border: 0;
+        border-bottom: 2px solid transparent;
+        background: transparent;
+        color: var(--muted);
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .tabs button[aria-selected="true"] {
+        color: var(--ink);
+        border-bottom-color: var(--forest);
+      }
+
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.74rem;
+      }
+
+      .table th {
+        padding: 0.4rem 0.35rem;
+        border-bottom: 1px solid var(--line);
+        color: var(--muted);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.58rem;
+        font-weight: 500;
+        letter-spacing: 0.05em;
+        text-align: left;
+        text-transform: uppercase;
+      }
+
+      .table td {
+        padding: 0.55rem 0.35rem;
+        border-bottom: 1px solid var(--line-soft);
+      }
+
+      .tag {
+        display: inline-block;
+        padding: 0.1rem 0.35rem;
+        border: 1px solid var(--line);
+        font-size: 0.62rem;
+        text-transform: uppercase;
+      }
+
+      .tag.review {
+        border-color: var(--amber);
+        color: #855017;
+      }
+
+      .tag.pass {
+        border-color: #7a9a81;
+        color: #2f663d;
+      }
+
+      .file {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.5rem;
+        align-items: center;
+      }
+
+      .file a {
+        color: var(--forest-mid);
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        text-decoration: none;
+      }
+
+      /* Approval focus card — only when needed */
+      .decision-card {
+        margin-top: 0.85rem;
+        padding: 1rem 1.1rem;
+        border: 2px solid var(--forest);
+        background: #f7f6ed;
+      }
+
+      .decision-card h2 {
+        margin-bottom: 0.35rem;
+        font-size: 1.45rem;
+      }
+
+      .decision-card .lead {
+        margin-bottom: 0.75rem;
+      }
+
+      .decision-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem 1.25rem;
+        margin-bottom: 0.9rem;
+        font-size: 0.78rem;
+      }
+
+      .decision-grid span {
+        display: block;
+        margin-bottom: 0.15rem;
+        color: var(--muted);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.58rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .decision-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem;
+      }
+
+      .command-dock {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 0.55rem;
+        align-items: center;
+        margin-top: 0.75rem;
+        padding: 0.7rem 0.8rem;
+        border: 1px solid var(--line);
+        background: rgb(255 255 255 / 40%);
+      }
+
+      .command-dock select,
+      .command-dock input {
+        min-height: 2.2rem;
+        padding: 0 0.6rem;
+        border: 1px solid var(--line);
+        background: white;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .compare-note {
+        margin: 0.5rem 0 0;
+        color: var(--muted);
+        font-size: 0.7rem;
+      }
+
+      @media (max-width: 1100px) {
+        .stage {
+          grid-template-columns: 1fr;
+        }
+
+        .panel + .panel {
+          border-left: 0;
+          border-top: 1px solid var(--ink);
+        }
+
+        .decision-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="proto-note">
+      <div>
+        <strong>Prototype · not the live app</strong>
+        — Same Sentinel palette. New hierarchy: one primary status, secondary
+        detail collapsed, work stage first, approval only when needed.
+      </div>
+      <div class="view-switch" role="group" aria-label="Prototype views">
+        <button type="button" id="btn-running" aria-pressed="true">
+          Running
+        </button>
+        <button type="button" id="btn-approval" aria-pressed="false">
+          Needs approval
+        </button>
+        <button type="button" id="btn-done" aria-pressed="false">Done</button>
+      </div>
+    </div>
+
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="mark" aria-hidden="true">S</div>
+          <div>
+            <p>Sentinel</p>
+            <span>Procurement operations</span>
+          </div>
+        </div>
+        <div class="side-block">
+          <p class="side-label">Run history</p>
+          <button class="session active" type="button">
+            <strong>Replace washdown pumps</strong>
+            <small>3 each · just now</small>
+          </button>
+          <button class="session" type="button">
+            <strong>Source safety eyewear</strong>
+            <small>600 pair · 2d ago</small>
+          </button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <!-- ========== RUNNING VIEW ========== -->
+        <section id="view-running">
+          <div class="status-hero">
+            <div>
+              <p class="eyebrow">Active run</p>
+              <h1>Replace washdown transfer pumps</h1>
+              <p class="lead">
+                <em>Comparing 3 suppliers</em> · supplier verification in
+                progress · <em>7 of 11 checks done</em>
+              </p>
+              <div class="meta-row">
+                <span>Phase <b>Supplier verification</b></span>
+                <span>Revision <b>3</b></span>
+                <span>Elapsed <b>12m</b></span>
+                <span>Attention <b>0 blockers</b></span>
+              </div>
+            </div>
+            <div class="hero-actions">
+              <span class="pill">Running</span>
+              <button class="btn" type="button">Pause run</button>
+            </div>
+          </div>
+
+          <div class="quiet-bar">
+            <div class="autonomy-mini">
+              <span class="chip">Autonomy</span>
+              <select aria-label="Autonomy mode">
+                <option>Ask before external contact</option>
+                <option>Research only</option>
+                <option>Approve and hold</option>
+              </select>
+            </div>
+            <details class="ghost-details">
+              <summary>Truth &amp; source</summary>
+              <div class="ghost-panel">
+                <p>
+                  <b>Truth boundary.</b> Deterministic local suppliers for this
+                  demo — not live market data. Approval never sends.
+                </p>
+                <p>
+                  <b>Source.</b> Durable API projection · fake providers · no
+                  approval dispatch.
+                </p>
+              </div>
+            </details>
+            <details class="ghost-details">
+              <summary>Demo / execution notes</summary>
+              <div class="ghost-panel">
+                Demo pacing on. Synthetic research documents only. Controlled
+                email remains a separate execute step after approval.
+              </div>
+            </details>
+          </div>
+
+          <div class="stage">
+            <section class="panel">
+              <div class="panel-head">
+                <h2>Now</h2>
+                <span>Work tree</span>
+              </div>
+              <div class="tree-item">
+                <strong>Request definition</strong>
+                <p>Complete · requirements frozen</p>
+              </div>
+              <div class="tree-item active">
+                <strong>Supplier verification</strong>
+                <p>Active · North America desk · 3 of 5 suppliers</p>
+              </div>
+              <div class="tree-item">
+                <strong>Compare &amp; recommend</strong>
+                <p>Waiting on verification</p>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <h2>Evidence</h2>
+                <span>Decision canvas</span>
+              </div>
+              <div class="tabs" role="tablist">
+                <button type="button" aria-selected="true">Comparison</button>
+                <button type="button" aria-selected="false">Claims</button>
+                <button type="button" aria-selected="false">Requirements</button>
+              </div>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Supplier</th>
+                    <th>Lead</th>
+                    <th>Cost</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Northstar Supply</td>
+                    <td>24d</td>
+                    <td>USD 760</td>
+                    <td><span class="tag pass">On track</span></td>
+                  </tr>
+                  <tr>
+                    <td>Blue River</td>
+                    <td>29d</td>
+                    <td>USD 840</td>
+                    <td><span class="tag review">Checking</span></td>
+                  </tr>
+                  <tr>
+                    <td>Cedar Works</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td><span class="tag">Queued</span></td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="compare-note">
+                Detail expands when you select a row — not all claims at once.
+              </p>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <h2>Outputs</h2>
+                <span>As they stabilize</span>
+              </div>
+              <div class="file">
+                <div>
+                  <strong>requirements-r3.md</strong>
+                  <p>Ready</p>
+                </div>
+                <a href="#">Open</a>
+              </div>
+              <div class="file">
+                <div>
+                  <strong>comparison.xlsx</strong>
+                  <p>Building…</p>
+                </div>
+                <span class="tag">…</span>
+              </div>
+            </section>
+          </div>
+
+          <div class="command-dock">
+            <select aria-label="Instruction mode">
+              <option>Queue</option>
+              <option>Redirect</option>
+            </select>
+            <input
+              type="text"
+              placeholder="Add context for the next safe checkpoint…"
+            />
+            <button class="btn primary" type="button">Send</button>
+          </div>
+        </section>
+
+        <!-- ========== APPROVAL VIEW ========== -->
+        <section id="view-approval" class="hidden">
+          <div class="status-hero">
+            <div>
+              <p class="eyebrow">Needs your decision</p>
+              <h1>Replace washdown transfer pumps</h1>
+              <p class="lead">
+                Comparison is ready.
+                <em>Approve the exact RFQ</em> to authorize contact — nothing is
+                sent until you approve.
+              </p>
+              <div class="meta-row">
+                <span>Phase <b>Approval</b></span>
+                <span>Revision <b>3</b></span>
+                <span>Candidates <b>3 compared</b></span>
+                <span>Artifacts <b>4 ready</b></span>
+              </div>
+            </div>
+            <div class="hero-actions">
+              <span class="pill attention">Approval pending</span>
+            </div>
+          </div>
+
+          <div class="quiet-bar">
+            <span class="chip">Autonomy · Ask before external</span>
+            <details class="ghost-details">
+              <summary>Truth &amp; source</summary>
+              <div class="ghost-panel">
+                Local synthetic suppliers for demo. Approval records permission
+                only; dispatch is a separate gated step.
+              </div>
+            </details>
+          </div>
+
+          <div class="decision-card">
+            <h2>RFQ ready for exact approval</h2>
+            <p class="lead">
+              Recommended: <b>Northstar Supply</b> · 24 day lead · USD 760 unit.
+              Preview is bound to attachment digests.
+            </p>
+            <div class="decision-grid">
+              <div>
+                <span>To</span>
+                procurement-demo@example.test
+              </div>
+              <div>
+                <span>Subject</span>
+                Request for quotation — 316L sanitary transfer pump
+              </div>
+              <div>
+                <span>Version</span>
+                v2 · sha256:e1ffeec4…
+              </div>
+              <div>
+                <span>Attachments</span>
+                4 files · digests bound
+              </div>
+            </div>
+            <div class="decision-actions">
+              <button class="btn acid" type="button">
+                Approve exact v2 — no send
+              </button>
+              <button class="btn" type="button">Edit proposal</button>
+              <button class="btn" type="button">Reject</button>
+            </div>
+          </div>
+
+          <div class="stage">
+            <section class="panel">
+              <div class="panel-head">
+                <h2>What finished</h2>
+                <span>Collapsed by default in spirit</span>
+              </div>
+              <div class="tree-item">
+                <strong>All phases complete</strong>
+                <p>Expand work tree only if you need the path</p>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-head">
+                <h2>Comparison</h2>
+                <span>Shortlist</span>
+              </div>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Supplier</th>
+                    <th>Lead</th>
+                    <th>Cost</th>
+                    <th>Gate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>Northstar Supply</b></td>
+                    <td>24d</td>
+                    <td>760</td>
+                    <td><span class="tag pass">Pass</span></td>
+                  </tr>
+                  <tr>
+                    <td>Blue River</td>
+                    <td>29d</td>
+                    <td>840</td>
+                    <td><span class="tag pass">Pass</span></td>
+                  </tr>
+                  <tr>
+                    <td>Cedar Works</td>
+                    <td>42d</td>
+                    <td>690</td>
+                    <td><span class="tag review">Lead risk</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+            <section class="panel">
+              <div class="panel-head">
+                <h2>Files</h2>
+                <span>4 ready</span>
+              </div>
+              <div class="file">
+                <div>
+                  <strong>comparison.xlsx</strong>
+                  <p>Ready</p>
+                </div>
+                <a href="#">Download</a>
+              </div>
+              <div class="file">
+                <div>
+                  <strong>rfq-package.zip</strong>
+                  <p>Ready</p>
+                </div>
+                <a href="#">Download</a>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <!-- ========== DONE VIEW ========== -->
+        <section id="view-done" class="hidden">
+          <div class="status-hero">
+            <div>
+              <p class="eyebrow">Complete</p>
+              <h1>Replace washdown transfer pumps</h1>
+              <p class="lead">
+                Run finished.
+                <em>Northstar Supply</em> recommended. RFQ approved (no send in
+                this mode). Downloads are ready.
+              </p>
+              <div class="meta-row">
+                <span>Revision <b>3</b></span>
+                <span>Elapsed <b>18m</b></span>
+                <span>Artifacts <b>4</b></span>
+              </div>
+            </div>
+            <div class="hero-actions">
+              <span class="pill done">Completed</span>
+              <button class="btn primary" type="button">
+                Download package
+              </button>
+            </div>
+          </div>
+
+          <div class="quiet-bar">
+            <span class="chip">Approved v2 · no dispatch</span>
+            <details class="ghost-details">
+              <summary>Run path &amp; disclosures</summary>
+              <div class="ghost-panel">
+                Work tree, tool detail, and source boundaries live here when you
+                need audit — not on the happy path.
+              </div>
+            </details>
+          </div>
+
+          <div class="stage" style="grid-template-columns: 1.2fr 0.8fr">
+            <section class="panel">
+              <div class="panel-head">
+                <h2>Recommendation</h2>
+                <span>Decision summary</span>
+              </div>
+              <div class="cand">
+                <strong>Northstar Supply</strong>
+                <p>
+                  Best lead time among mandatory-pass candidates. Unit USD 760 ·
+                  24 days · food-contact evidence accepted.
+                </p>
+              </div>
+              <div class="cand">
+                <strong>Why not others</strong>
+                <p>
+                  Blue River slower. Cedar Works fails preferred lead window.
+                </p>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-head">
+                <h2>Take with you</h2>
+                <span>Artifacts</span>
+              </div>
+              <div class="file">
+                <div>
+                  <strong>comparison.xlsx</strong>
+                  <p>Workbook</p>
+                </div>
+                <a href="#">Download</a>
+              </div>
+              <div class="file">
+                <div>
+                  <strong>recommendation.md</strong>
+                  <p>Memo</p>
+                </div>
+                <a href="#">Download</a>
+              </div>
+              <div class="file">
+                <div>
+                  <strong>rfq-package.zip</strong>
+                  <p>Approved bundle</p>
+                </div>
+                <a href="#">Download</a>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const views = {
+        running: document.getElementById("view-running"),
+        approval: document.getElementById("view-approval"),
+        done: document.getElementById("view-done"),
+      };
+      const buttons = {
+        running: document.getElementById("btn-running"),
+        approval: document.getElementById("btn-approval"),
+        done: document.getElementById("btn-done"),
+      };
+
+      function show(name) {
+        for (const key of Object.keys(views)) {
+          views[key].classList.toggle("hidden", key !== name);
+          buttons[key].setAttribute("aria-pressed", key === name ? "true" : "false");
+        }
+      }
+
+      buttons.running.addEventListener("click", () => show("running"));
+      buttons.approval.addEventListener("click", () => show("approval"));
+      buttons.done.addEventListener("click", () => show("done"));
+    </script>
+  
+<script>
+  (function(){
+    const v = new URLSearchParams(location.search).get("view");
+    if (v === "approval") document.getElementById("btn-approval").click();
+    if (v === "done") document.getElementById("btn-done").click();
+  })();
+</script>
+
+</body>
+</html>

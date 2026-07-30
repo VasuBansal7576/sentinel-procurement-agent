@@ -38,14 +38,12 @@ exists until a person has recorded and reviewed it.
   - need: `Three continuous-duty pumps, food-contact compatible, available in 30 days`
   - quantity: `3`
   - unit: `each`
-- Leave autonomy on **Ask before external contact** (default). Mention the other
-  two modes in plain language once: research only, approve and hold.
+- Leave autonomy on **Ask before external contact** (default dropdown). Mention
+  the other modes once: research only, approve and hold.
 - Select **Start run**.
-- Point out, in product language, the current phase, revision, autonomy,
-  progress, attention count, nested child, the persistent truth boundary, and
-  the execution-boundary disclosure.
-- Expand the active phase/subagent only far enough to show nesting. Do not turn
-  the recording into a tool-log tour.
+- Point out the **status hero first** (what is happening / how far), then the
+  work tree / evidence / outputs stage. Open **Truth & source** only briefly for
+  honesty. Expand nesting lightly — not a tool-log tour.
 
 ### 2. Break the tool path and recover
 

@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 import type { AutonomyMode, CreateRunInput } from "./api";
 import { ActionRail } from "./operator/ActionRail";
@@ -11,6 +11,11 @@ import type {
   SessionSummary,
 } from "./operator/types";
 import { DEFAULT_AUTONOMY_OPTIONS } from "./operator/types";
+import {
+  buildStatusEyebrow,
+  buildStatusLead,
+  resolveWorkbenchMode,
+} from "./operator/statusLead";
 import { WorkTree } from "./operator/WorkTree";
 
 const ACTIVE_RUN_STORAGE_KEY = "sentinel.active-run-id";
@@ -139,6 +144,23 @@ export function App({ gateway }: AppProps) {
   }
 
   const controlAction = run?.session.status === "paused" ? "resume" : "pause";
+  const mode = run ? resolveWorkbenchMode(run) : "running";
+  const autonomyOptions = useMemo(
+    () =>
+      run?.autonomyOptions?.length
+        ? run.autonomyOptions
+        : DEFAULT_AUTONOMY_OPTIONS,
+    [run?.autonomyOptions],
+  );
+
+  const canControl =
+    !!run &&
+    ["running", "paused", "recovering"].includes(run.session.status) &&
+    !isMutating;
+
+  const primaryDownload = run?.artifacts.find(
+    (artifact) => artifact.status !== "building",
+  );
 
   return (
     <div className="operator-shell">
@@ -159,8 +181,8 @@ export function App({ gateway }: AppProps) {
 
         <div className="session-heading">
           <div>
-            <p className="section-index">Durable sessions</p>
-            <h2 id="session-heading">Run history</h2>
+            <p className="section-index">Run history</p>
+            <h2 id="session-heading">Sessions</h2>
           </div>
           <button
             className="icon-button"
@@ -238,29 +260,24 @@ export function App({ gateway }: AppProps) {
                 />
               </label>
             </div>
-            <fieldset className="autonomy-fieldset">
-              <legend>How much autonomy?</legend>
-              {DEFAULT_AUTONOMY_OPTIONS.map((option) => (
-                <label key={option.value} className="autonomy-option">
-                  <input
-                    type="radio"
-                    name="intake-autonomy"
-                    value={option.value}
-                    checked={request.autonomy_mode === option.value}
-                    onChange={() =>
-                      setRequest({
-                        ...request,
-                        autonomy_mode: option.value,
-                      })
-                    }
-                  />
-                  <span>
-                    <strong>{option.label}</strong>
-                    <small>{option.description}</small>
-                  </span>
-                </label>
-              ))}
-            </fieldset>
+            <label>
+              Autonomy
+              <select
+                value={request.autonomy_mode}
+                onChange={(event) =>
+                  setRequest({
+                    ...request,
+                    autonomy_mode: event.target.value as AutonomyMode,
+                  })
+                }
+              >
+                {DEFAULT_AUTONOMY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
             <button type="submit" disabled={isMutating}>
               {isMutating ? "Starting…" : "Start run"}
             </button>
@@ -322,31 +339,42 @@ export function App({ gateway }: AppProps) {
           </div>
         ) : run ? (
           <>
-            <div className="honesty-banner" role="status">
-              <strong>Truth boundary</strong>
-              <span>{run.honestyBanner}</span>
-            </div>
-            <header className="run-header">
-              <div className="run-title">
-                <div className="run-breadcrumb">
-                  <span>Run history</span>
-                  <span aria-hidden="true">/</span>
-                  <span>{run.session.id}</span>
+            <header
+              className={`status-hero mode-${mode}`}
+              aria-labelledby="run-title"
+            >
+              <div className="status-hero-copy">
+                <p className="status-eyebrow">{buildStatusEyebrow(run)}</p>
+                <h1 id="run-title">{run.session.title}</h1>
+                <p className="status-lead">{buildStatusLead(run)}</p>
+                <div className="meta-row">
+                  <span>
+                    Phase <b>{run.activePhase}</b>
+                  </span>
+                  <span>
+                    Revision <b>{run.session.revision}</b>
+                  </span>
+                  <span>
+                    Elapsed <b>{run.elapsedLabel}</b>
+                  </span>
+                  <span>
+                    Progress{" "}
+                    <b>
+                      {run.progress.completed} of {run.progress.total} work
+                      items
+                    </b>
+                  </span>
+                  <span>
+                    Attention{" "}
+                    <b>
+                      {run.progress.active} active · {run.progress.blockers}{" "}
+                      blocker
+                      {run.progress.blockers === 1 ? "" : "s"}
+                    </b>
+                  </span>
                 </div>
-                <h1>{run.session.title}</h1>
-                <p>{run.summary}</p>
-                <div className="runtime-disclosure" role="note">
-                  <strong>Execution boundary</strong>
-                  <span>{run.runtimeDisclosure}</span>
-                </div>
-                {run.sourceBoundary ? (
-                  <div className="runtime-disclosure source-boundary" role="note">
-                    <strong>Source boundary</strong>
-                    <span>{run.sourceBoundary}</span>
-                  </div>
-                ) : null}
               </div>
-              <div className="run-controls">
+              <div className="hero-actions">
                 <span
                   className={`run-status ${run.session.status}`}
                   role="status"
@@ -354,188 +382,195 @@ export function App({ gateway }: AppProps) {
                   <span aria-hidden="true" />
                   {run.session.status}
                 </span>
-                <button
-                  className="secondary-button"
-                  type="button"
-                  disabled={
-                    isMutating ||
-                    !["running", "paused", "recovering"].includes(
-                      run.session.status,
-                    )
-                  }
-                  onClick={() =>
+                {mode === "done" && primaryDownload ? (
+                  <a className="primary-button-link" href={primaryDownload.downloadUrl}>
+                    Download package
+                  </a>
+                ) : (
+                  <button
+                    className="secondary-button"
+                    type="button"
+                    disabled={!canControl}
+                    onClick={() =>
+                      void mutate(() =>
+                        workbenchGateway.controlRun(
+                          run.session.id,
+                          controlAction,
+                        ),
+                      )
+                    }
+                  >
+                    {controlAction === "pause" ? "Pause run" : "Resume run"}
+                  </button>
+                )}
+              </div>
+            </header>
+
+            <div className="quiet-bar">
+              <label className="autonomy-mini">
+                <span>Autonomy</span>
+                <select
+                  aria-label="How much autonomy this run may use"
+                  value={run.autonomyMode}
+                  disabled={isMutating}
+                  onChange={(event) =>
                     void mutate(() =>
-                      workbenchGateway.controlRun(
+                      workbenchGateway.setAutonomy(
                         run.session.id,
-                        controlAction,
+                        event.target.value as AutonomyMode,
                       ),
                     )
                   }
                 >
-                  {controlAction === "pause" ? "Pause run" : "Resume run"}
-                </button>
-              </div>
-              <section
-                className="autonomy-panel"
-                aria-labelledby="autonomy-heading"
-              >
-                <div className="autonomy-panel-copy">
-                  <p className="section-index" id="autonomy-heading">
-                    Operator autonomy
+                  {autonomyOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <details className="ghost-details">
+                <summary>Truth &amp; source</summary>
+                <div className="ghost-panel">
+                  <p>
+                    <strong>Truth boundary.</strong> {run.honestyBanner}
                   </p>
                   <p>
-                    Set how much this run may do on its own, in plain language.
-                    External contact never auto-sends.
+                    <strong>Execution boundary.</strong> {run.runtimeDisclosure}
+                  </p>
+                  {run.sourceBoundary ? (
+                    <p>
+                      <strong>Source boundary.</strong> {run.sourceBoundary}
+                    </p>
+                  ) : null}
+                  <p>
+                    <strong>Projection.</strong> {workbenchGateway.sourceLabel}
                   </p>
                 </div>
-                <div
-                  className="autonomy-mode-list"
-                  role="radiogroup"
-                  aria-label="How much autonomy this run may use"
-                >
-                  {(run.autonomyOptions.length
-                    ? run.autonomyOptions
-                    : DEFAULT_AUTONOMY_OPTIONS
-                  ).map((option) => (
-                    <label
-                      key={option.value}
-                      className={
-                        run.autonomyMode === option.value
-                          ? "autonomy-chip selected"
-                          : "autonomy-chip"
-                      }
-                    >
-                      <input
-                        type="radio"
-                        name={`run-autonomy-${run.session.id}`}
-                        value={option.value}
-                        checked={run.autonomyMode === option.value}
-                        disabled={isMutating}
-                        onChange={() =>
-                          void mutate(() =>
-                            workbenchGateway.setAutonomy(
-                              run.session.id,
-                              option.value as AutonomyMode,
-                            ),
-                          )
-                        }
-                      />
-                      <span>
-                        <strong>{option.label}</strong>
-                        <small>{option.description}</small>
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </section>
-              <dl className="run-facts">
-                <div>
-                  <dt>Active phase</dt>
-                  <dd>{run.activePhase}</dd>
-                </div>
-                <div>
-                  <dt>Request</dt>
-                  <dd>Revision {run.session.revision}</dd>
-                </div>
-                <div>
-                  <dt>Autonomy</dt>
-                  <dd>{run.autonomyLabel}</dd>
-                </div>
-                <div>
-                  <dt>Policy</dt>
-                  <dd>{run.policyLabel}</dd>
-                </div>
-                <div>
-                  <dt>Elapsed</dt>
-                  <dd>{run.elapsedLabel}</dd>
-                </div>
-                <div>
-                  <dt>Progress</dt>
-                  <dd>
-                    {run.progress.completed} of {run.progress.total} work items
-                  </dd>
-                </div>
-                <div>
-                  <dt>Attention</dt>
-                  <dd>
-                    {run.progress.active} active · {run.progress.blockers}{" "}
-                    blocker
-                    {run.progress.blockers === 1 ? "" : "s"}
-                  </dd>
-                </div>
-              </dl>
-            </header>
+              </details>
 
-            <div className="workbench-grid" aria-busy={isMutating}>
-              <section
-                className="work-tree-panel"
-                aria-labelledby="tree-heading"
-              >
-                <div className="panel-heading">
-                  <div>
-                    <p className="section-index">Execution structure</p>
-                    <h2 id="tree-heading">Work tree</h2>
-                  </div>
-                  <span>Glance → inspect</span>
-                </div>
-                <div className="tree-legend" aria-label="Work state legend">
-                  {(
-                    ["active", "completed", "remaining", "blocked"] as const
-                  ).map((state) => (
-                    <span key={state}>
-                      <i className={`state-mark ${state}`} aria-hidden="true" />
-                      {state}
-                    </span>
-                  ))}
-                </div>
-                <WorkTree
-                  key={run.session.id}
-                  nodes={run.workTree}
-                  onRetry={(workId) =>
+              <span className="quiet-chip">{run.policyLabel}</span>
+            </div>
+
+            <div
+              className={`workbench-grid mode-${mode}`}
+              aria-busy={isMutating}
+            >
+              {mode === "approval" ? (
+                <ActionRail
+                  key={`${run.session.id}-${run.proposal?.current.version ?? 0}-decision`}
+                  run={run}
+                  layout="decision-first"
+                  onSaveProposal={(edit) =>
                     mutate(() =>
-                      workbenchGateway.retryWork(run.session.id, workId),
+                      workbenchGateway.saveProposal(run.session.id, edit),
                     )
                   }
+                  onDecideProposal={(decision) =>
+                    mutate(() =>
+                      workbenchGateway.decideProposal(run.session.id, decision),
+                    )
+                  }
+                  onExecuteProposal={
+                    workbenchGateway.executeApprovedEmail
+                      ? () =>
+                          mutate(() =>
+                            workbenchGateway.executeApprovedEmail!(
+                              run.session.id,
+                            ),
+                          )
+                      : undefined
+                  }
                 />
-              </section>
+              ) : null}
+
+              {mode !== "done" ? (
+                <section
+                  className="work-tree-panel"
+                  aria-labelledby="tree-heading"
+                >
+                  <div className="panel-heading">
+                    <div>
+                      <p className="section-index">Now</p>
+                      <h2 id="tree-heading">Work tree</h2>
+                    </div>
+                    <span>Expand for detail</span>
+                  </div>
+                  <div className="tree-legend" aria-label="Work state legend">
+                    {(
+                      ["active", "completed", "remaining", "blocked"] as const
+                    ).map((state) => (
+                      <span key={state}>
+                        <i
+                          className={`state-mark ${state}`}
+                          aria-hidden="true"
+                        />
+                        {state}
+                      </span>
+                    ))}
+                  </div>
+                  <WorkTree
+                    key={run.session.id}
+                    nodes={run.workTree}
+                    onRetry={(workId) =>
+                      mutate(() =>
+                        workbenchGateway.retryWork(run.session.id, workId),
+                      )
+                    }
+                  />
+                </section>
+              ) : null}
 
               <EvidenceCanvas key={run.session.id} run={run} />
 
-              <ActionRail
-                key={`${run.session.id}-${run.proposal?.current.version ?? 0}`}
-                run={run}
-                onSaveProposal={(edit) =>
-                  mutate(() =>
-                    workbenchGateway.saveProposal(run.session.id, edit),
-                  )
-                }
-                onDecideProposal={(decision) =>
-                  mutate(() =>
-                    workbenchGateway.decideProposal(run.session.id, decision),
-                  )
-                }
-                onExecuteProposal={
-                  workbenchGateway.executeApprovedEmail
-                    ? () =>
-                        mutate(() =>
-                          workbenchGateway.executeApprovedEmail!(
-                            run.session.id,
-                          ),
-                        )
-                    : undefined
-                }
-              />
+              {mode !== "approval" ? (
+                <ActionRail
+                  key={`${run.session.id}-${run.proposal?.current.version ?? 0}`}
+                  run={run}
+                  layout="rail"
+                  onSaveProposal={(edit) =>
+                    mutate(() =>
+                      workbenchGateway.saveProposal(run.session.id, edit),
+                    )
+                  }
+                  onDecideProposal={(decision) =>
+                    mutate(() =>
+                      workbenchGateway.decideProposal(
+                        run.session.id,
+                        decision,
+                      ),
+                    )
+                  }
+                  onExecuteProposal={
+                    workbenchGateway.executeApprovedEmail
+                      ? () =>
+                          mutate(() =>
+                            workbenchGateway.executeApprovedEmail!(
+                              run.session.id,
+                            ),
+                          )
+                      : undefined
+                  }
+                />
+              ) : null}
             </div>
 
-            <CommandComposer
-              key={run.session.id}
-              commands={run.commands}
-              onSend={(mode, text) =>
-                mutate(() =>
-                  workbenchGateway.sendCommand(run.session.id, mode, text),
-                )
-              }
-            />
+            {mode !== "done" ? (
+              <CommandComposer
+                key={run.session.id}
+                commands={run.commands}
+                onSend={(modeValue, text) =>
+                  mutate(() =>
+                    workbenchGateway.sendCommand(
+                      run.session.id,
+                      modeValue,
+                      text,
+                    ),
+                  )
+                }
+              />
+            ) : null}
           </>
         ) : (
           <div className="workbench-loading">

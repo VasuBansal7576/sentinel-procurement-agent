@@ -24,26 +24,25 @@ describe("structural operator workbench", () => {
         name: "Replace warehouse label printers",
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText("14 of 21 work items")).toBeInTheDocument();
+    expect(screen.getByText(/14 of 21 work items/i)).toBeInTheDocument();
     expect(
-      screen.getByText(
+      screen.getAllByText(
         "Fixture projection · deterministic local data · no external effects",
-      ),
-    ).toBeInTheDocument();
+      ).length,
+    ).toBeGreaterThan(0);
+    // Truth / execution notes live under progressive disclosure.
+    fireEvent.click(screen.getByText("Truth & source"));
     expect(
       screen.getByText(/FIXTURE MODE: typed local projection/),
     ).toBeInTheDocument();
     expect(
       screen.getByText(/Deterministic local suppliers · not live market data/i),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("radiogroup", {
-        name: /How much autonomy this run may use/i,
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("radio", { name: /Ask before external contact/i }),
-    ).toBeChecked();
+    const autonomy = screen.getByLabelText(
+      /How much autonomy this run may use/i,
+    );
+    expect(autonomy).toBeInTheDocument();
+    expect(autonomy).toHaveValue("ask_before_external");
 
     fireEvent.click(
       screen.getByRole("button", {
@@ -96,7 +95,7 @@ describe("structural operator workbench", () => {
         .getAllByRole("status")
         .some((status) => status.textContent?.includes("recovering")),
     ).toBe(true);
-    expect(screen.getByText(/0 blockers/)).toBeInTheDocument();
+    expect(screen.getAllByText(/0 blockers/).length).toBeGreaterThan(0);
   });
 
   it("supports keyboard navigation across comparison, evidence, and requirements", async () => {
@@ -125,19 +124,18 @@ describe("structural operator workbench", () => {
       name: "Replace warehouse label printers",
     });
 
-    fireEvent.click(
-      screen.getByRole("radio", { name: /Research only · no external contact/i }),
+    fireEvent.change(
+      screen.getByLabelText(/How much autonomy this run may use/i),
+      { target: { value: "research_only" } },
     );
 
     await waitFor(() =>
       expect(
-        screen.getByRole("radio", {
-          name: /Research only · no external contact/i,
-        }),
-      ).toBeChecked(),
+        screen.getByLabelText(/How much autonomy this run may use/i),
+      ).toHaveValue("research_only"),
     );
     expect(
-      screen.queryByRole("heading", { name: "RFQ proposal" }),
+      screen.queryByRole("heading", { name: /RFQ/i }),
     ).not.toBeInTheDocument();
   });
 
@@ -174,8 +172,11 @@ describe("structural operator workbench", () => {
     );
 
     await waitFor(() =>
-      expect(screen.getByText("Revision 4")).toBeInTheDocument(),
+      expect(
+        screen.getByText((_, element) => element?.textContent === "4"),
+      ).toBeInTheDocument(),
     );
+    expect(screen.getByText("Revision")).toBeInTheDocument();
     expect(
       screen.getByText("Require installation before 30 September."),
     ).toBeInTheDocument();
@@ -183,7 +184,9 @@ describe("structural operator workbench", () => {
 
   it("shows a semantic version diff, saves a new proposal version, and binds approval", async () => {
     render(<App gateway={createFixtureGateway()} />);
-    await screen.findByRole("heading", { name: "RFQ proposal" });
+    await screen.findByRole("heading", {
+      name: /RFQ ready for exact approval|RFQ proposal/i,
+    });
 
     fireEvent.click(screen.getByRole("tab", { name: "v2 → v3" }));
     expect(
