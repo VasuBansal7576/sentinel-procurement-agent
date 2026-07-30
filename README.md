@@ -1,70 +1,102 @@
 # Sentinel
 
-Sentinel is a credential-independent procurement agent and structural operator
-workbench. A non-engineer can start a deep run, understand nested work, pause or
-redirect it, recover a failed branch, inspect evidence, approve an exact
-proposal version, and download the resulting files without opening a terminal.
+Operator workbench for long-running procurement agents.
 
-The harness is implemented. The integrated demonstration uses deterministic
-local supplier documents, a real PostgreSQL event journal, real Temporal
-parent/child workflows, deterministic evaluation, generated artifacts, and a
-fake email provider. It performs no live browsing, model call, or email send.
-Approval records a single-use, version-bound permission; approval itself never
-dispatches.
+The product problem is not “can the agent call tools.” It is whether a
+procurement manager who will never open a terminal can understand a deep run,
+interrupt it, redirect it without discarding safe work, recover a failed branch,
+inspect evidence, and authorize one exact external action without losing their
+place.
 
-## What is real and what is fake
+Sentinel is that control plane. The engine is intentionally lean: deep enough to
+stress nesting, failure, and approval; not a general autonomous buyer.
 
-| Area | Current behavior |
+## What you are looking at
+
+| Surface | Role |
 |---|---|
-| Intake and domain | Real typed, category-generic procurement contracts |
-| Deep execution | Real Temporal parent/child workflow and activity boundary |
-| Run history and reconnect | Real PostgreSQL journal/projections and resumable SSE |
-| Research inputs | Deterministic local supplier documents; no live web request |
-| Evidence and ranking | Real taint/provenance contracts and deterministic evaluation |
-| Artifacts | Real Markdown, XLSX, and ZIP bytes; stored in run-scoped integration records |
-| Approval | Real canonical versions, digests, policy decision, and single-use permit |
-| Email | Deterministic fake provider only in the app/demo; no send on approval |
-| Demo failure | Optional deterministic first-attempt tool failure, forbidden in production |
-| Demo video | Not committed; final recording is a human submission step |
+| React workbench | Structural operator UI: session rail, work tree, evidence canvas, action rail |
+| FastAPI | Commands, projections, artifact download, resumable SSE |
+| Temporal | Durable parent/child workflows, pause/resume, redirect, retry |
+| PostgreSQL | Append-only run journal, projections, protected-action state |
+| Protected-action broker | Exact payload digests, single-use permits, separate execute gate |
+| Resend adapter | Optional controlled email after approval; never on approve alone |
 
-Production adapters for Resend and research/browser isolation exist behind
-tested interfaces, but no credentialed provider is configured or exercised.
-MinIO is in Compose for the intended object-store topology; the integrated
-credential-free run currently retains artifact bytes in PostgreSQL records.
+Default local mode is credential-free: deterministic supplier documents, fake
+email provider, no live model. The control plane (Temporal, journal, SSE,
+approval, artifacts) is real either way.
+
+## System shape
+
+```text
+┌──────────────────────────────────────────────────────────────────┐
+│                     Operator workbench (React)                   │
+│  sessions · work tree · evidence · artifacts · exact approval    │
+└───────────────────────────────┬──────────────────────────────────┘
+                                │ HTTP commands + SSE (Last-Event-ID)
+┌───────────────────────────────▼──────────────────────────────────┐
+│                         FastAPI application                      │
+│  intake · operator commands · projections · artifact download    │
+└───────┬───────────────────────────────┬──────────────────────────┘
+        │                               │
+        ▼                               ▼
+┌───────────────────┐         ┌─────────────────────┐
+│   PostgreSQL      │         │   Temporal worker   │
+│ journal / outbox  │◄───────►│ parent + child WF   │
+│ projections       │         │ activities          │
+│ permits / outcomes│         └──────────┬──────────┘
+└───────────────────┘                    │
+                                         ▼
+                              ┌─────────────────────┐
+                              │ credential-free     │
+                              │ executor (default)  │
+                              │ research · evaluate │
+                              │ artifacts · RFQ     │
+                              └──────────┬──────────┘
+                                         │ authorize + consume permit
+                                         ▼
+                              ┌─────────────────────┐
+                              │ email execution     │
+                              │ fake | Resend       │
+                              │ controlled recipient│
+                              └─────────────────────┘
+```
+
+Full diagrams, trust boundaries, and run lifecycle: [`architecture.md`](architecture.md).
 
 ## Operator model
 
-The primary operator is a procurement manager who understands requirements,
-suppliers, evidence, and approval risk but does not know Temporal, tool calls, or
-terminal commands. The workbench therefore uses an operations layout:
+Primary user: a procurement manager. They judge requirements, vendors, evidence,
+and approval risk. They do not know what a tool call or workflow signal is.
 
-- session history and durable source disclosure on the left;
-- a persistent truth boundary that states synthetic local suppliers and no-send approval;
-- nested phases, subagents, work, and tools as a collapsible work tree;
-- requirements, comparison, and claim-level evidence in the decision canvas;
-- artifacts and exact protected-action preview in the action rail;
-- pause/resume, queue/redirect, and plain-language autonomy controls.
+The workbench answers three questions without translation:
 
-### Autonomy modes (non-engineer language)
+1. What is happening now?
+2. What already completed, and what is blocked?
+3. What can I safely do next?
 
-| Mode | Behavior |
+Controls are product language: pause/resume, queue, redirect, retry from
+checkpoint, autonomy modes (research only / ask before external / approve and
+hold), exact proposal edit, approve without send, optional separate execute.
+
+## Honest boundary
+
+| Layer | Behavior |
 |---|---|
-| Research only | Comparison and files only; RFQ / external contact path suppressed |
-| Ask before external contact (default) | Full research path; exact approval required; approval never sends |
-| Approve and hold | Exact approval allowed; dispatch remains a separate gated step |
+| Domain + evaluation | Typed procurement contracts; deterministic ranking |
+| Durability | Real Temporal parent/child; real Postgres journal + SSE resume |
+| Research in default demo | Local synthetic suppliers — not live market data |
+| Artifacts | Real Markdown / XLSX / ZIP bytes |
+| Approval | Version + digest bound; single-use; approval ≠ dispatch |
+| Email | Fake by default; Resend path exists for one controlled recipient after execute |
+| Live web / LLM | Not the default integrated path |
 
-Autonomy is chosen at intake and can be changed on an active or completed run
-(completed runs may only tighten to research only).
+The UI surfaces a persistent truth boundary so the operator never confuses
+synthetic research with market truth.
 
-Blocked, failed, recovering, approval-pending, empty, loading, and API-error
-states are designed states. The live run is restored from its durable ID after
-a tab close, and `Last-Event-ID` resumes the event stream without replaying
-already seen events.
+## Quick start
 
-## Local setup
-
-Prerequisites: Python 3.12-3.14, `uv`, Node.js 22, npm, Docker, and Docker
-Compose.
+Requires Python 3.12–3.14, `uv`, Node 22, npm, Docker Compose.
 
 ```bash
 cp .env.example .env
@@ -72,75 +104,43 @@ make bootstrap
 make infra-up
 ```
 
-Run the API, worker, and workbench in three terminals from the repository root:
+Three processes from the repo root (with `.env` loaded):
 
 ```bash
-set -a; source .env; set +a
 .venv/bin/sentinel-api
-```
-
-```bash
-set -a; source .env; set +a
 .venv/bin/sentinel-worker
-```
-
-```bash
 npm run dev:web
 ```
 
-Open `http://localhost:5173`. The API is at `http://localhost:8000`; development
-API documentation is at `http://localhost:8000/api/docs`. Temporal UI is at
-`http://localhost:8080`.
+| Service | URL |
+|---|---|
+| Workbench | http://localhost:5173 |
+| API | http://localhost:8000 |
+| API docs | http://localhost:8000/api/docs |
+| Temporal UI | http://localhost:8080 |
 
-`make bootstrap` is lockfile-bound (`uv.lock` and `package-lock.json`).
-PostgreSQL migrations are checksum-verified and local auto-migration is
-idempotent. The Compose Temporal image remains pinned to
-`temporalio/auto-setup:1.27`.
-
-## Deterministic demo controls
-
-For a visible operator-paced run, set these values in `.env` before starting
-the API and worker:
+### Demo pacing (optional)
 
 ```dotenv
 SENTINEL_DEMO_MODE=true
-SENTINEL_DEMO_STEP_DELAY_MS=250
+SENTINEL_DEMO_STEP_DELAY_MS=1200
 SENTINEL_DEMO_FAILURE_STEP=candidate.2.snapshot
 ```
 
-The named step fails throughout Temporal's automatic activity retries on the
-first workflow attempt. The run then stays durably blocked with a targeted
-“Retry from checkpoint” control; the second workflow attempt succeeds. Pacing
-and failure controls require explicit demo mode, default off, and configuration
-validation rejects demo mode in production.
+Forces a first-attempt tool failure and durable recovery path. Rejected when
+`SENTINEL_ENVIRONMENT=production`.
 
-The full operator journey is in
-[`docs/demo/operator-runbook.md`](docs/demo/operator-runbook.md). It includes a
-real worker termination/restart, close/reopen, queue, pause/resume, redirect,
-selective reuse, recovery, edit-after-approval invalidation, artifact download,
-and a hard stop before any real send.
+Operator recording checklist: [`docs/demo/operator-runbook.md`](docs/demo/operator-runbook.md).
 
-## Safety boundaries
+## Safety invariants
 
-- Untrusted research content stays tainted and cannot grant capabilities,
-  reveal credentials, or invoke a protected action.
-- Research grants contain read-only tools, public-domain egress constraints,
-  isolated browser handles, and no credentials.
-- Editing always creates a canonical proposal version. A prior approval cannot
-  authorize the edited version.
-- A permit is exact-payload, exact-attachment, policy-revision bound,
-  expiring, and single use.
-- Controlled-recipient policy is checked again at execution time.
-- Duplicate email attempts share an idempotency key; ambiguous outcomes must be
-  reconciled before retry.
-- Artifacts require both the run ID and opaque artifact ID, download as
-  attachments, disable MIME sniffing and caching, and carry a content digest.
-- The integrated UI does not expose a dispatch endpoint. Approval and execution
-  are separate operations, and fake execution is the only accepted demo path.
-
-The post-acceptance credential sequence is documented in
-[`docs/release/credential-checklist.md`](docs/release/credential-checklist.md).
-Do not request or configure credentials until every fake-mode gate is green.
+- Research content is tainted; it cannot grant capabilities or invoke send.
+- Proposal edit creates a new version; old permits die.
+- Permits are exact-payload, attachment-digest, policy-revision, expiring, single-use.
+- Controlled recipient is rechecked at execution time.
+- Ambiguous provider outcomes require reconciliation before retry.
+- Artifact download is run-scoped, no-store, nosniff, digest-headed.
+- Autonomy “research only” suppresses the external RFQ path entirely.
 
 ## Validation
 
@@ -151,30 +151,22 @@ docker compose config --quiet
 make trace-verify
 ```
 
-Real PostgreSQL and Temporal acceptance commands, including worker restart and
-replay, are listed in
-[`docs/demo/operator-runbook.md`](docs/demo/operator-runbook.md). Tests default
-to deterministic fake providers and never need network or provider secrets.
+Tests default to fake providers. No secrets required for CI or local green.
 
-## Submission evidence
+## Repository map
 
-- [`MEMO.md`](MEMO.md) - two-page product and tradeoff memo
-- [`docs/implementation/acceptance-ledger.md`](docs/implementation/acceptance-ledger.md) -
-  requirement-to-proof map
-- [`docs/demo/operator-runbook.md`](docs/demo/operator-runbook.md) -
-  operator-perspective recording checklist
-- [`traces/`](traces/) - redacted native Codex JSONL, append-only manifest, and
-  transparent redaction records
+```text
+apps/api/          FastAPI, domain, Temporal, email, evaluation
+apps/web/          Operator workbench
+docs/              Architecture notes, runbook, acceptance ledger
+traces/            Native coding-agent session exports + redaction log
+MEMO.md            Product decisions, cuts, failure table, metric
+architecture.md    System diagrams and trust boundaries
+```
 
-The committed traces preserve native session event structure. The exporter
-redacts only credential patterns, non-example email identifiers, and absolute
-personal home paths, records every replacement by location and original-value
-hash, and verifies committed byte/line counts and SHA-256 hashes.
+## Deliberate non-goals
 
-## Deliberate cuts
-
-Sentinel does not place orders, spend money, negotiate, modify an ERP, perform
-live web research in the demo, or send a real email. It does not claim that the
-deterministic local supplier set represents current market truth. Those cuts
-keep the submission focused on the measured product problem: making a deep
-agent legible, controllable, recoverable, and safe for a non-engineer operator.
+No purchase orders, payments, autonomous negotiation, ERP mutation, multi-tenant
+identity, or hosted multi-user deployment. No claim that the default supplier set
+is live market truth. The graded surface is operator control under depth and
+failure—not full procurement automation.
