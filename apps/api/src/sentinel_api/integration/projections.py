@@ -26,8 +26,7 @@ from sentinel_api.persistence.models import (
 from sentinel_api.persistence.protocols import EventStore
 
 HONESTY_BANNER = (
-    "Research sources depend on configuration · "
-    "approval records permission only and never sends"
+    "Research sources depend on configuration · approval records permission only and never sends"
 )
 SOURCE_BOUNDARY = (
     "Durable Temporal/PostgreSQL control plane · research via Agent Reach "
