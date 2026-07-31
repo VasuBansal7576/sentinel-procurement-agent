@@ -11,17 +11,28 @@ from typing import Protocol
 from temporalio.client import Client
 from temporalio.worker import Worker
 
-from sentinel_api.config import get_settings
+from sentinel_api.config import Settings, get_settings
 from sentinel_api.integration.demo import DemoProfile
 from sentinel_api.integration.executor import CredentialFreeWorkExecutor
 from sentinel_api.integration.repository import PostgresIntegrationRepository
 from sentinel_api.persistence.runtime import event_store_runtime
 from sentinel_api.protected_actions import PostgresApprovalBroker
+from sentinel_api.research.agent_reach import AgentReachResearchClient, FakeResearchClient
 from sentinel_api.workflows.activities import RuntimeActivities
 from sentinel_api.workflows.child import ProcurementChildWorkflow
 from sentinel_api.workflows.parent import ProcurementParentWorkflow
 
 TASK_QUEUE = "sentinel-procurement"
+
+
+def _controlled_recipient(settings: Settings) -> str:
+    return settings.controlled_recipient or "procurement-demo@example.test"
+
+
+def _research_client(settings: Settings) -> FakeResearchClient | AgentReachResearchClient:
+    if settings.research_provider == "agent_reach":
+        return AgentReachResearchClient()
+    return FakeResearchClient()
 
 
 class StoppableWorker(Protocol):
@@ -65,6 +76,9 @@ async def run_worker() -> None:
             event_store=event_store,
             proposal_broker=broker,
             demo_profile=demo_profile,
+            controlled_recipient=_controlled_recipient(settings),
+            research_client=_research_client(settings),
+            research_mode=settings.research_provider,
         )
         activities = RuntimeActivities(event_store, executor)
         client = await Client.connect(

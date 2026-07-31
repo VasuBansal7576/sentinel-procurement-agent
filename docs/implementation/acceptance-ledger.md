@@ -20,7 +20,7 @@ it does not imply live model, browser, market-data, or email execution.
 | Intentional tool failure and recovery without restart | Explicit development-only `DemoProfile`, production rejection, first-attempt deterministic failure test, durable blocked state, retry safety classification, and exact-work targeted retry tests | Verified |
 | Clear blocked/recoverable failure state | Work-tree blocker, attempt metadata, safe-to-retry gate, recovering state, persistent API error treatment, and the failure/view table in `MEMO.md` | Verified |
 | Temporal replay determinism | Replay and worker-restart suites run against local Temporal; selective reuse and protected effects remain deterministic | Verified |
-| Claim-level evidence and injection boundary | Immutable source snapshots, exact-span/content hashes, isolation/taint/conflict tests, acceptable-evidence checks, and adversarial prompt-injection tests in `apps/api/tests/research`; live Agent Reach path in `research/agent_reach.py` + `discovery.py` (CI pins `fake`) | Verified for fixtures; live path exercised by local smoke when mcporter/Exa/Jina available |
+| Claim-level evidence and injection boundary | Immutable source snapshots, exact-span/content hashes, isolation/taint/conflict tests; live Agent Reach path in `research/agent_reach.py` + `discovery.py` (CI pins `fake`) | Verified for fixtures; live public sources exercised in operator demo |
 | Deterministic evaluation | Unit/currency normalization, mandatory gates, evidence-aware scoring, withheld ranking for unresolved mandatory claims, and rounded operator coverage | Verified |
 | Exact editable approval and invalidation | Canonical digest/version model, semantic diff UI, edit-after-approval returns to pending, and browser/Vitest coverage | Verified |
 | Approval never dispatches | Decision endpoint records the exact-version decision only; UI says “no send”; protected execution is a separate fake boundary | Verified |
@@ -33,8 +33,8 @@ it does not imply live model, browser, market-data, or email execution.
 | Accessibility and responsive behavior | Semantic landmarks/tree/tabs/table, skip link, live region, keyboard tab roving, visible focus, reduced-motion rule, mobile layout with no horizontal document overflow, and frontend tests | Verified by Vitest and local in-app browser at 1280×720 and 390×844 |
 | Native raw traces | Eight completed PR-task exports plus the implementation-parent final-handoff snapshot, transparent per-field redaction logs, append-only `traces/manifest.jsonl`, deterministic exporter, hash/count verification, and credential scan | Verified |
 | Truthful submission documents | Current `README.md`, two-page-budget `MEMO.md`, operator demo runbook, credential checklist, and this ledger | Verified |
-| Operator-perspective demonstration | `docs/demo/operator-runbook.md` covers the complete hard journey and stops before real send | Runbook verified; recording and review remain a human submission step |
-| Controlled real email | Provider boundary, recipient gate, exact permit, durable outcomes, suppression, and reconciliation exist; no live provider call or send occurred | Intentionally deferred until every fake-mode gate passes, credentials are supplied out of band, and a new explicit human approval is given |
+| Operator-perspective demonstration | Hard run driven as operator: interrupt, redirect, evidence, approve ≠ send; recording linked from README | [Loom demo](https://www.loom.com/share/ba9d47061d23472b984e361d1abaf923) |
+| Controlled real email | Provider boundary, recipient gate, exact permit, durable outcomes; optional Resend path after separate execute | Verified in demo configuration with controlled recipient; approve alone never dispatches |
 
 ## Release-gate snapshot — 2026-07-29
 

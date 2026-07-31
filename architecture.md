@@ -3,6 +3,8 @@
 How the system is actually shaped: control plane, durability, trust boundaries,
 and the run lifecycle. This matches the implemented monorepo, not a wishlist.
 
+**Operator demo:** [Loom recording](https://www.loom.com/share/ba9d47061d23472b984e361d1abaf923)
+
 ## 1. Problem split
 
 ```text
@@ -226,10 +228,14 @@ apps/api/src/sentinel_api/
   protected_actions/   broker, canonical digests, permits
   email/               execution service, fake + Resend
   evaluation/          normalization + ranking
-  research/            isolation contracts (taint, browser broker)
+  research/            taint/isolation, Agent Reach client, discovery heuristics
   routes/              HTTP + SSE
 apps/web/src/          structural workbench only
 ```
+
+API and worker both construct `CredentialFreeWorkExecutor` with the same research
+provider and controlled recipient so Temporal activities cannot silently fall
+back to fixtures while the API discloses live mode.
 
 ## 10. Failure classes (designed states)
 

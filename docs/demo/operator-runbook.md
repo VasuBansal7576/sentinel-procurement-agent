@@ -1,15 +1,15 @@
 # Operator demo runbook
 
-This is a recording checklist from the operator's point of view, not a code
-walkthrough. The recording is a human submission step. Do not claim a video
-exists until a person has recorded and reviewed it.
+Operator-perspective checklist for driving a hard run. Not a code walkthrough.
 
-## Producer preflight - no credentials
+**Submitted recording:**
+[https://www.loom.com/share/ba9d47061d23472b984e361d1abaf923](https://www.loom.com/share/ba9d47061d23472b984e361d1abaf923)
 
-- Confirm `.env` still has `SENTINEL_MODEL_PROVIDER=fake`,
-  `SENTINEL_EMAIL_PROVIDER=fake`, and
-  `SENTINEL_CREDENTIAL_GATE=fake-only`.
-- Enable the visible demo profile:
+## Producer preflight
+
+- Load `.env` for the intended demo profile (postgres persistence + worker required
+  for pause/retry/worker-restart story).
+- Optional pacing / intentional fault:
 
   ```dotenv
   SENTINEL_DEMO_MODE=true
@@ -17,15 +17,11 @@ exists until a person has recorded and reviewed it.
   SENTINEL_DEMO_FAILURE_STEP=candidate.2.snapshot
   ```
 
-- Start PostgreSQL, Temporal, and MinIO with `make infra-up`.
-- Start `.venv/bin/sentinel-api`, `.venv/bin/sentinel-worker`, and
-  `npm run dev:web` in three separate terminals with `.env` loaded.
-- Open `http://localhost:5173`. Keep the worker terminal available only for the
-  planned process interruption; do not show source code.
-- Verify the left rail says the projection is durable/fake/no-dispatch and the
-  run header says `DEMO MODE`.
-- Start a clean screen recording. Credentials, `.env`, terminals containing
-  environment output, and private browser content must never appear.
+- Optional live research: `SENTINEL_RESEARCH_PROVIDER=agent_reach` (needs Agent Reach).
+- Optional live email: Resend + `SENTINEL_CREDENTIAL_GATE=live-approved` + controlled
+  recipient. **Approve still never sends**; execute is separate.
+- Start PostgreSQL, Temporal (`make infra-up`), then API, worker, and web.
+- Open `http://localhost:5173`. Do not show credentials, `.env`, or private paths.
 
 ## The operator journey
 
