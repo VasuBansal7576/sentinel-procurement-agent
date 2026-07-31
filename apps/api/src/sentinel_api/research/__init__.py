@@ -1,6 +1,17 @@
 """Public research, browser isolation, and evidence-provenance services."""
 
+from sentinel_api.research.agent_reach import (
+    AgentReachResearchClient,
+    DiscoveredSource,
+    FakeResearchClient,
+    discover_sources,
+)
 from sentinel_api.research.browser import BrowserBackend, BrowserBroker
+from sentinel_api.research.discovery import (
+    ExtractedFacts,
+    candidate_from_source,
+    extract_facts,
+)
 from sentinel_api.research.evidence import (
     ClaimProvenance,
     ConflictGroup,
@@ -49,13 +60,17 @@ from sentinel_api.research.security import (
 )
 
 __all__ = [
+    "AgentReachResearchClient",
     "BrowserBackend",
     "BrowserBroker",
     "BrowserPrimitive",
     "ClaimProvenance",
     "ConflictGroup",
+    "DiscoveredSource",
     "EvidenceSnapshot",
     "ExactSpan",
+    "ExtractedFacts",
+    "FakeResearchClient",
     "FetchRequest",
     "FetchTransport",
     "FreshnessState",
@@ -82,6 +97,9 @@ __all__ = [
     "UrlPolicy",
     "VerifiedObservation",
     "build_verified_observation",
+    "candidate_from_source",
+    "discover_sources",
+    "extract_facts",
     "find_conflicts",
     "freshness_at",
     "locate_exact_span",

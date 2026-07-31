@@ -14,6 +14,7 @@ from sentinel_api.config import get_settings
 def credential_free_test_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SENTINEL_PERSISTENCE_MODE", "memory")
     monkeypatch.setenv("SENTINEL_MODEL_PROVIDER", "fake")
+    monkeypatch.setenv("SENTINEL_RESEARCH_PROVIDER", "fake")
     monkeypatch.setenv("SENTINEL_EMAIL_PROVIDER", "fake")
     monkeypatch.setenv("SENTINEL_EMAIL_SENDER", "onboarding@resend.dev")
     monkeypatch.setenv(

@@ -22,9 +22,12 @@ stress nesting, failure, and approval; not a general autonomous buyer.
 | Protected-action broker | Exact payload digests, single-use permits, separate execute gate |
 | Resend adapter | Optional controlled email after approval; never on approve alone |
 
-Default local mode is credential-free: deterministic supplier documents, fake
-email provider, no live model. The control plane (Temporal, journal, SSE,
-approval, artifacts) is real either way.
+Default research uses **Agent Reach** backends already on the machine: Exa
+search via `mcporter` and page read via Jina Reader (`r.jina.ai`). That path
+returns real public source URLs — not a hardcoded supplier list. Email stays
+fake by default (no live model). The control plane (Temporal, journal, SSE,
+approval, artifacts) is real either way. Set `SENTINEL_RESEARCH_PROVIDER=fake`
+for offline CI fixtures only.
 
 ## System shape
 
@@ -48,9 +51,9 @@ approval, artifacts) is real either way.
 └───────────────────┘                    │
                                          ▼
                               ┌─────────────────────┐
-                              │ credential-free     │
-                              │ executor (default)  │
-                              │ research · evaluate │
+                              │ executor            │
+                              │ Agent Reach search  │
+                              │ + page read · eval  │
                               │ artifacts · RFQ     │
                               └──────────┬──────────┘
                                          │ authorize + consume permit
@@ -85,14 +88,15 @@ hold), exact proposal edit, approve without send, optional separate execute.
 |---|---|
 | Domain + evaluation | Typed procurement contracts; deterministic ranking |
 | Durability | Real Temporal parent/child; real Postgres journal + SSE resume |
-| Research in default demo | Local synthetic suppliers — not live market data |
+| Research (default) | Live public search + page read via Agent Reach (Exa/mcporter + Jina). Real URLs; heuristic fact extraction — not a negotiated quote |
+| Research (`fake`) | Deterministic Northstar/Blue River/Cedar fixtures for CI only |
 | Artifacts | Real Markdown / XLSX / ZIP bytes |
 | Approval | Version + digest bound; single-use; approval ≠ dispatch |
 | Email | Fake by default; Resend path exists for one controlled recipient after execute |
-| Live web / LLM | Not the default integrated path |
+| Live LLM planner | Not in the integrated path |
 
-The UI surfaces a persistent truth boundary so the operator never confuses
-synthetic research with market truth.
+The UI honesty banner states which research mode is active so operators never
+confuse fixture runs with live public sources.
 
 ## Quick start
 
@@ -151,7 +155,9 @@ docker compose config --quiet
 make trace-verify
 ```
 
-Tests default to fake providers. No secrets required for CI or local green.
+Tests pin `SENTINEL_RESEARCH_PROVIDER=fake` (and other fake providers). No secrets
+required for CI or local green. Live research needs `mcporter` + healthy Agent
+Reach backends (`agent-reach doctor`).
 
 ## Repository map
 
@@ -167,6 +173,7 @@ architecture.md    System diagrams and trust boundaries
 ## Deliberate non-goals
 
 No purchase orders, payments, autonomous negotiation, ERP mutation, multi-tenant
-identity, or hosted multi-user deployment. No claim that the default supplier set
-is live market truth. The graded surface is operator control under depth and
+identity, or hosted multi-user deployment. Live research invents candidates from
+public pages; it does not claim negotiated quotes or verified commercial
+availability. The graded surface is operator control under depth and
 failure—not full procurement automation.

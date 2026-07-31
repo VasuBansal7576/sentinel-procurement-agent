@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     object_store_access_key: str = "sentinel"
     object_store_secret_key: str = "sentinel-local-only"
     model_provider: Literal["fake", "openai"] = "fake"
+    research_provider: Literal["fake", "agent_reach"] = "agent_reach"
     email_provider: Literal["fake", "resend", "gmail"] = "fake"
     email_sender: str = "onboarding@resend.dev"
     controlled_recipient: str | None = None

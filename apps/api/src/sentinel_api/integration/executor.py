@@ -1,4 +1,4 @@
-"""Deterministic credential-free executor for production RuntimeActivities."""
+"""Procurement work executor: live Agent-Reach research by default, fake for tests."""
 
 from __future__ import annotations
 
@@ -16,12 +16,11 @@ from sentinel_api.domain import (
     AutonomyMode,
     Candidate,
     EvidenceObservation,
-    Money,
     RequestRevision,
-    Supplier,
     autonomy_policy_decision,
     utc_now,
 )
+from sentinel_api.domain.common import ScalarValue
 from sentinel_api.evaluation import (
     CandidateEvaluation,
     RankingResult,
@@ -41,11 +40,22 @@ from sentinel_api.research import (
     VerifiedObservation,
     build_verified_observation,
 )
+from sentinel_api.research.agent_reach import (
+    AgentReachResearchClient,
+    FakeResearchClient,
+    LiveResearchClient,
+    discover_sources,
+)
+from sentinel_api.research.discovery import (
+    candidate_from_source,
+    ensure_span_in_page,
+    extract_facts,
+)
 from sentinel_api.workflows.models import ChildActivityInput, ProducedWork, WorkExecution
 
 
 class CredentialFreeWorkExecutor:
-    """Exercise real modules while keeping every source and effect local."""
+    """Run the procurement pipeline with real or fake research adapters."""
 
     def __init__(
         self,
@@ -55,16 +65,25 @@ class CredentialFreeWorkExecutor:
         proposal_broker: ApprovalBrokerAdapter,
         demo_profile: DemoProfile | None = None,
         controlled_recipient: str = "procurement-demo@example.test",
+        research_client: LiveResearchClient | None = None,
+        research_mode: str = "fake",
     ) -> None:
         self._records = records
         self._event_store = event_store
         self._proposal_broker = proposal_broker
         self._demo_profile = demo_profile or DemoProfile()
         self._controlled_recipient = controlled_recipient
+        self._research_mode = research_mode
+        if research_client is not None:
+            self._research = research_client
+        elif research_mode == "agent_reach":
+            self._research = AgentReachResearchClient()
+        else:
+            self._research = FakeResearchClient()
 
     async def __call__(self, request: ChildActivityInput) -> WorkExecution:
         if request.work_item.kind != "end_to_end":
-            raise ValueError(f"unsupported credential-free work kind: {request.work_item.kind}")
+            raise ValueError(f"unsupported work kind: {request.work_item.kind}")
         run_id = UUID(request.parent_run_id)
         input_ref = UUID(request.work_item.input_ref.removeprefix("record://"))
         loaded = await self._step(
@@ -77,37 +96,43 @@ class CredentialFreeWorkExecutor:
         revision = RequestRevision.model_validate(loaded.payload["revision"])
         line_item = revision.lots[0].line_items[0]
         autonomy = _autonomy_from_record(loaded)
+        raw_intake = loaded.payload.get("intake")
+        intake = raw_intake if isinstance(raw_intake, dict) else {}
+        item_name = str(intake.get("item_name") or line_item.name)
+        description = str(intake.get("description") or line_item.description)
+
+        sources = await self._step(
+            request,
+            "research.search",
+            lambda: discover_sources(
+                self._research,
+                item_name=item_name,
+                description=description,
+                limit=5,
+            ),
+        )
 
         candidates: list[Candidate] = []
         observations: list[EvidenceObservation] = []
         snapshot_store = InMemorySnapshotStore()
-        candidate_specs = (
-            ("Northstar", Decimal("24"), Decimal("760"), True),
-            ("Blue River", Decimal("29"), Decimal("840"), True),
-            ("Cedar Works", Decimal("42"), Decimal("690"), True),
+        producer = (
+            "sentinel.agent-reach-research/1.0"
+            if self._research_mode == "agent_reach"
+            else "sentinel.fake-research/1.0"
         )
-        for position, (supplier_name, lead_time, unit_price, available) in enumerate(
-            candidate_specs,
-            start=1,
-        ):
+
+        for position, source in enumerate(sources, start=1):
+            facts = extract_facts(source, item_name=item_name)
             construct_candidate = partial(
-                Candidate,
-                id=deterministic_id(run_id, f"candidate:{position}"),
+                candidate_from_source,
+                run_id=run_id,
+                position=position,
                 request_revision_id=revision.id,
                 lot_id=revision.lots[0].id,
-                supplier=Supplier(
-                    id=deterministic_id(run_id, f"supplier:{position}"),
-                    legal_name=f"{supplier_name} Supply",
-                    website=f"https://supplier-{position}.example.test",
-                    country_code="US",
-                ),
-                offering_name=f"{line_item.name} option {position}",
-                source_url=(
-                    f"https://supplier-{position}.example.test/catalog/"
-                    f"{deterministic_id(run_id, f'page:{position}')}"
-                ),
-                quoted_price=Money(amount=unit_price, currency="USD"),
-                attributes={"description": line_item.description},
+                item_name=item_name,
+                description=description,
+                source=source,
+                facts=facts,
             )
             candidate: Candidate = await self._step(
                 request,
@@ -115,25 +140,28 @@ class CredentialFreeWorkExecutor:
                 construct_candidate,
             )
             candidates.append(candidate)
-            exact_values = {
-                "availability": "Available: yes" if available else "Available: no",
-                "lead_time": f"Lead time: {lead_time} days",
-                "unit_price": f"Unit price: USD {unit_price}",
-            }
-            body = (
-                f"{candidate.supplier.legal_name}\n"
-                f"Offering: {candidate.offering_name}\n" + "\n".join(exact_values.values())
-            ).encode()
+
+            evidence_lines = [
+                facts.availability_text,
+                facts.lead_time_text,
+            ]
+            if facts.unit_price_text:
+                evidence_lines.append(facts.unit_price_text)
+            page_body = ensure_span_in_page(source.page_text, "\n".join(evidence_lines))
+            # Also ensure each individual span exists for extractors.
+            for line in evidence_lines:
+                page_body = ensure_span_in_page(page_body, line)
+
             content = UntrustedContent.from_body(
-                url=candidate.source_url,
-                body=body,
-                media_type="text/plain; charset=utf-8",
+                url=source.url,
+                body=page_body.encode("utf-8", errors="replace"),
+                media_type="text/markdown; charset=utf-8",
             )
             persist_snapshot = partial(
                 snapshot_store.put,
                 run_id=run_id,
                 request_revision_id=revision.id,
-                producer="sentinel.credential-free-research/1.0",
+                producer=producer,
                 content=content,
             )
             snapshot = await self._step(
@@ -141,11 +169,16 @@ class CredentialFreeWorkExecutor:
                 f"candidate.{position}.snapshot",
                 persist_snapshot,
             )
-            for requirement_key, value, unit in (
-                ("availability", available, None),
-                ("lead_time", lead_time, "day"),
-                ("unit_price", unit_price, "USD"),
-            ):
+
+            extract_jobs: list[tuple[str, ScalarValue, str | None, str]] = [
+                ("availability", facts.available, None, facts.availability_text),
+                ("lead_time", facts.lead_time_days, "day", facts.lead_time_text),
+            ]
+            if facts.unit_price is not None and facts.unit_price_text:
+                extract_jobs.append(
+                    ("unit_price", facts.unit_price, "USD", facts.unit_price_text),
+                )
+            for requirement_key, value, unit, exact_text in extract_jobs:
                 extract = partial(
                     build_verified_observation,
                     snapshot=snapshot,
@@ -153,9 +186,9 @@ class CredentialFreeWorkExecutor:
                     candidate_id=candidate.id,
                     requirement_key=requirement_key,
                     value=value,
-                    exact_text=exact_values[requirement_key],
-                    extractor_version="credential-free-extractor/1.0",
-                    confidence=1,
+                    exact_text=exact_text,
+                    extractor_version=f"{producer}-extractor",
+                    confidence=0.7 if self._research_mode == "agent_reach" else 1.0,
                     evidence_type="supplier_page",
                     normalized_unit=unit,
                 )
@@ -176,7 +209,12 @@ class CredentialFreeWorkExecutor:
             request,
             "evidence.persist",
             "evidence",
-            {"observations": [observation.model_dump(mode="json") for observation in observations]},
+            {
+                "observations": [
+                    observation.model_dump(mode="json") for observation in observations
+                ],
+                "research_mode": self._research_mode,
+            },
         )
         evaluations: list[CandidateEvaluation] = []
         for position, candidate in enumerate(candidates, start=1):
@@ -208,6 +246,7 @@ class CredentialFreeWorkExecutor:
                     if ranking.recommended_candidate_id
                     else None
                 ),
+                "research_mode": self._research_mode,
                 "candidates": [
                     {
                         "rank": ranked.rank,
@@ -264,6 +303,11 @@ class CredentialFreeWorkExecutor:
             )
         proposal_record: IntegrationRecord | None = None
         product_specs: tuple[tuple[str, str], ...]
+        research_note = (
+            "public web sources via Agent Reach (Exa search + Jina Reader)"
+            if self._research_mode == "agent_reach"
+            else "deterministic local research fixtures"
+        )
         if autonomy is AutonomyMode.RESEARCH_ONLY:
             await self._step(
                 request,
@@ -274,8 +318,8 @@ class CredentialFreeWorkExecutor:
                 },
             )
             summary = (
-                f"Compared {len(candidates)} candidates and generated "
-                f"{len(artifact_records)} artifacts under research-only autonomy"
+                f"Compared {len(candidates)} candidates from {research_note} and "
+                f"generated {len(artifact_records)} artifacts under research-only autonomy"
             )
             product_specs = (
                 ("evidence:verified", "evidence"),
@@ -284,12 +328,20 @@ class CredentialFreeWorkExecutor:
             )
         else:
             recipient = self._controlled_recipient
+            top = ranking.recommended_candidate_id
+            top_name = next(
+                (candidate.offering_name for candidate in candidates if candidate.id == top),
+                item_name,
+            )
             proposal_payload = {
                 "to": recipient,
-                "subject": f"Request for quotation — {line_item.name}",
+                "subject": f"Request for quotation — {item_name}",
                 "body": (
                     f"Please quote {line_item.quantity.value} {line_item.quantity.unit} "
-                    f"of {line_item.name}. Confirm availability and lead time."
+                    f"of {item_name}.\n\n"
+                    f"Need: {description}\n"
+                    f"Working recommendation from public sources: {top_name}\n"
+                    f"Research mode: {research_note}. Confirm availability and lead time."
                 ),
             }
             proposal_result = await self._step(
@@ -322,15 +374,16 @@ class CredentialFreeWorkExecutor:
                     "status": str(proposal.status.value),
                     "risk_class": "external_send",
                     "autonomy_mode": autonomy.value,
+                    "research_mode": self._research_mode,
                     "policy_decision": (
-                        f"{autonomy_policy_decision(autonomy)}; fake provider only"
+                        f"{autonomy_policy_decision(autonomy)}; approval never auto-sends"
                     ),
                 },
                 record_ref=proposal_id,
             )
             summary = (
-                f"Compared {len(candidates)} candidates and generated "
-                f"{len(artifact_records)} artifacts without credentials"
+                f"Compared {len(candidates)} candidates from {research_note} and "
+                f"generated {len(artifact_records)} artifacts"
             )
             product_specs = (
                 ("evidence:verified", "evidence"),
@@ -356,6 +409,7 @@ class CredentialFreeWorkExecutor:
                         str(proposal_record.record_ref) if proposal_record is not None else None
                     ),
                     "autonomy_mode": autonomy.value,
+                    "research_mode": self._research_mode,
                 },
             )
         )

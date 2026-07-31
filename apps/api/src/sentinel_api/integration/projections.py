@@ -26,12 +26,12 @@ from sentinel_api.persistence.models import (
 from sentinel_api.persistence.protocols import EventStore
 
 HONESTY_BANNER = (
-    "Deterministic local suppliers · not live market data · "
+    "Research sources depend on configuration · "
     "approval records permission only and never sends"
 )
 SOURCE_BOUNDARY = (
-    "Credential-free execution boundary: local synthetic research documents, "
-    "fake email provider, durable Temporal/PostgreSQL control plane."
+    "Durable Temporal/PostgreSQL control plane · research via Agent Reach "
+    "backends (Exa + Jina) or offline fixtures · email only after separate execute."
 )
 
 

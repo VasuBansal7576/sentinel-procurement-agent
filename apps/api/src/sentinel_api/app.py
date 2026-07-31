@@ -21,6 +21,7 @@ from sentinel_api.integration.runtime import InlineRuntimeLauncher, LazyTemporal
 from sentinel_api.integration.service import IntegrationService
 from sentinel_api.persistence.runtime import event_store_runtime
 from sentinel_api.protected_actions import ApprovalBroker, PostgresApprovalBroker
+from sentinel_api.research.agent_reach import AgentReachResearchClient, FakeResearchClient
 from sentinel_api.routes.events import router as events_router
 from sentinel_api.routes.health import router as health_router
 from sentinel_api.routes.operator import router as operator_router
@@ -32,13 +33,59 @@ def _controlled_recipient(settings: Settings) -> str:
     return settings.controlled_recipient or "procurement-demo@example.test"
 
 
-def _runtime_disclosure(settings: Settings, demo_profile: DemoProfile) -> str:
-    if settings.email_provider == "resend" and settings.credential_gate == "live-approved":
+def _research_client(settings: Settings) -> FakeResearchClient | AgentReachResearchClient:
+    if settings.research_provider == "agent_reach":
+        return AgentReachResearchClient()
+    return FakeResearchClient()
+
+
+def _honesty_banner(settings: Settings) -> str:
+    if settings.research_provider == "agent_reach":
         return (
-            "Live Resend email enabled for one controlled recipient. "
-            "Approval still does not send; execute is a separate operator action."
+            "Live public-web research via Agent Reach backends "
+            "(Exa search + Jina Reader). Source URLs are real pages. "
+            "Approval records permission only and never sends."
         )
-    return demo_profile.disclosure
+    return (
+        "Deterministic local research fixtures · not live market data · "
+        "approval records permission only and never sends"
+    )
+
+
+def _runtime_disclosure(settings: Settings, demo_profile: DemoProfile) -> str:
+    parts: list[str] = []
+    if settings.research_provider == "agent_reach":
+        parts.append(
+            "Research uses Agent Reach-style public search/read (mcporter Exa + Jina Reader)."
+        )
+    else:
+        parts.append(demo_profile.disclosure)
+    if settings.email_provider == "resend" and settings.credential_gate == "live-approved":
+        parts.append(
+            "Live Resend email enabled for one controlled recipient; "
+            "execute is a separate operator action."
+        )
+    return " ".join(parts)
+
+
+def _build_executor(
+    *,
+    settings: Settings,
+    records: object,
+    event_store: object,
+    proposal_broker: object,
+    demo_profile: DemoProfile,
+    recipient: str,
+) -> CredentialFreeWorkExecutor:
+    return CredentialFreeWorkExecutor(
+        records=records,  # type: ignore[arg-type]
+        event_store=event_store,  # type: ignore[arg-type]
+        proposal_broker=proposal_broker,  # type: ignore[arg-type]
+        demo_profile=demo_profile,
+        controlled_recipient=recipient,
+        research_client=_research_client(settings),
+        research_mode=settings.research_provider,
+    )
 
 
 def _build_email_boundary(
@@ -74,12 +121,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.approval_broker = PostgresApprovalBroker(event_store.connection_pool)
         records = PostgresIntegrationRepository(event_store.connection_pool)
         recipient = _controlled_recipient(settings)
-        executor = CredentialFreeWorkExecutor(
+        executor = _build_executor(
+            settings=settings,
             records=records,
             event_store=event_store,
             proposal_broker=app.state.approval_broker,
             demo_profile=demo_profile,
-            controlled_recipient=recipient,
+            recipient=recipient,
         )
         activities = RuntimeActivities(event_store, executor)
         email_store = PostgresEmailExecutionStore(event_store.connection_pool)
@@ -98,6 +146,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             ),
             proposal_broker=app.state.approval_broker,
             runtime_disclosure=_runtime_disclosure(settings, demo_profile),
+            honesty_banner=_honesty_banner(settings),
             controlled_recipient=recipient,
             email_boundary=email_boundary,
             live_email_enabled=email_boundary.live_dispatch_enabled,
@@ -122,12 +171,13 @@ def create_app() -> FastAPI:
     memory_events = InMemoryEventStore()
     memory_records = InMemoryIntegrationRepository()
     recipient = _controlled_recipient(settings)
-    executor = CredentialFreeWorkExecutor(
+    executor = _build_executor(
+        settings=settings,
         records=memory_records,
         event_store=memory_events,
         proposal_broker=app.state.approval_broker,
         demo_profile=demo_profile,
-        controlled_recipient=recipient,
+        recipient=recipient,
     )
     activities = RuntimeActivities(memory_events, executor)
     email_store = InMemoryEmailExecutionStore()
@@ -146,6 +196,7 @@ def create_app() -> FastAPI:
         ),
         proposal_broker=app.state.approval_broker,
         runtime_disclosure=_runtime_disclosure(settings, demo_profile),
+        honesty_banner=_honesty_banner(settings),
         controlled_recipient=recipient,
         email_boundary=email_boundary,
         live_email_enabled=email_boundary.live_dispatch_enabled,

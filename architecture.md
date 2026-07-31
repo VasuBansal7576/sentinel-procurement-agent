@@ -244,11 +244,13 @@ apps/web/src/          structural workbench only
 
 ## 11. What is intentionally not in the critical path
 
-- Live multi-vendor web research as the default demo
-- LLM planner in the integrated credential-free executor
+- Negotiated quotes / verified commercial availability (live research is public
+  search + page read heuristics via Agent Reach, not RFQ responses)
+- LLM planner in the integrated executor
 - Multi-user auth, RBAC UI, multi-tenant hosting
 - ERP write-back, payments, PO placement
 
-Those are orthogonal product expansions. The architecture keeps seams
-(provider interfaces, broker, Temporal activities) so they can attach without
-rewriting the operator control plane.
+Default research provider is `agent_reach` (Exa via mcporter + Jina Reader).
+`fake` fixtures remain for CI. The architecture keeps seams (provider
+interfaces, broker, Temporal activities) so paid market data or LLM planning
+can attach without rewriting the operator control plane.
